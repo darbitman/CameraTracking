@@ -11,9 +11,19 @@ EdgeDetector::CannyEdgeDetector::CannyEdgeDetector(int32_t lowThreshold, int32_t
 
 void EdgeDetector::CannyEdgeDetector::RunEdgeDetector(CannyStruct *data) {
   cv::Mat srcGrayscale;
+
+  // first convert picture to grayscale
   cv::cvtColor(data->src, srcGrayscale, CV_BGR2GRAY);
-  cv::blur(srcGrayscale, data->detectedEdges, cv::Size(3, 3));
+
+  // apply gaussian blur to filter noise
+  cv::GaussianBlur(srcGrayscale, data->detectedEdges, cv::Size(3, 3), 0);
+
+  // Run Canny edge detector
   cv::Canny(data->detectedEdges, data->detectedEdges, lowThreshold_, lowThreshold_ * ratio_, kernelSize_);
+  
+  // set background of result to be black
   data->dst = cv::Scalar::all(0);
+
+  // using detectedEdges as mask, copy pixels from src to dst in the locations where detectedEdges is nonzero
   data->src.copyTo(data->dst, data->detectedEdges);
 }

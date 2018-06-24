@@ -3,11 +3,15 @@
 #include <stdint.h>
 
 namespace EdgeDetector {
+  // forward declaration
   struct CannyStruct;
 
   class CannyEdgeDetector {
   public:
+    // Creates an object used to run Canny edge detection
     CannyEdgeDetector(int32_t lowThreshold, int32_t maxLowThreshold, int32_t ratio, int32_t kernelSize = 3);
+
+    // Performs Canny edge detection using data passed in through struct CannyStruct pointer
     void RunEdgeDetector(CannyStruct* data);
   private:
     int32_t lowThreshold_;
@@ -17,12 +21,11 @@ namespace EdgeDetector {
 
   };
 
+
   struct CannyStruct {
-    CannyEdgeDetector* this_;
+    CannyEdgeDetector* edgeDetector_;
     cv::Mat src;
     cv::Mat dst;
     cv::Mat detectedEdges;
   };
-
-  void CannyEdgeDetectorCallback(int value, void* userData);
 }
