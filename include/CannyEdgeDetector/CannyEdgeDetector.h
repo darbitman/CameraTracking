@@ -2,9 +2,17 @@
 #include <opencv2/opencv.hpp>
 #include <stdint.h>
 
-namespace EdgeDetector {
-  // forward declaration
-  struct CannyStruct;
+// ct namespace (camera tracking)
+namespace ct {
+
+  // bind a CannyEdgeDetector to input data
+  struct CannyStruct {
+    CannyEdgeDetector* edgeDetector_;
+    cv::Mat src;
+    cv::Mat dst;
+    cv::Mat detectedEdges;
+  };
+
 
   class CannyEdgeDetector {
   public:
@@ -12,7 +20,8 @@ namespace EdgeDetector {
     CannyEdgeDetector(int32_t lowThreshold, int32_t maxLowThreshold, int32_t ratio, int32_t kernelSize = 3);
 
     // Performs Canny edge detection using data passed in through struct CannyStruct pointer
-    void RunEdgeDetector(CannyStruct* data);
+    // returns bool to indicate if edge detector was able to run
+    bool RunEdgeDetector(CannyStruct& data) const;
   private:
     int32_t lowThreshold_;
     int32_t maxLowThreshold_;
@@ -21,11 +30,4 @@ namespace EdgeDetector {
 
   };
 
-
-  struct CannyStruct {
-    CannyEdgeDetector* edgeDetector_;
-    cv::Mat src;
-    cv::Mat dst;
-    cv::Mat detectedEdges;
-  };
 }
