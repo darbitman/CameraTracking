@@ -2,6 +2,7 @@ close all;
 clear;
 %%% Get input image %%%
 src = imread('guitar.png');
+src = src(25:32,25:32,:);
 figure, imshow(src);
 title('Original image');
 
@@ -23,9 +24,18 @@ mag = sqrt(dx.^2 + dy.^2);
 ang = atan2(dy,dx) * 360 / (2 * pi);
 
 %%% compute number of cells
-horizCells = size(src,2) / 8;
-vertCells = size(src,1) / 8;
+pixelsW = 8;
+pixelsH = 8;
+horizCells = size(src,2) / pixelsW;
+vertCells = size(src,1) / pixelsH;
 
 
 numBins = 9;
 hist = zeros(vertCells, horizCells, numBins);
+for r = 1:vertCells
+    for c = 1:horizCells
+        i = (c - 1)*pixelsW + 1;
+        j = (r - 1)*pixelsH + 1;
+        hist(r,c,:) = GetHistogram(mag, ang, j, i, pixelsH, pixelsW, 9);
+    end
+end
