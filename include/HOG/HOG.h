@@ -8,7 +8,8 @@ namespace ct {
   public:
     // creates a Histogram of Oriented Gradients object given standard parameters from the original paper
     HOG(uint32_t cellSize = 2, uint32_t cellsPerBlock = 2, uint32_t binSize = 9);
-    RunHOG(const Mat& gx, const Mat& gy);
+
+    void RunHOG(const cv::Mat& grayscaleImg, cv::Mat& descriptors);
   private:
     uint32_t cellSize_;
     uint32_t cellsPerBlock_;
