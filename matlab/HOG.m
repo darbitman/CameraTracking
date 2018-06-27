@@ -2,7 +2,7 @@ close all;
 clear;
 %%% Get input image %%%
 src = imread('guitar.png');
-src = src(25:32,25:32,:);
+src = src(25:64,25:64,:);
 figure, imshow(src);
 title('Original image');
 
