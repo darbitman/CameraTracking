@@ -2,7 +2,7 @@ close all;
 clear;
 %%% Get input image %%%
 src = imread('guitar.png');
-src = src(25:64,25:64,:);
+
 figure, imshow(src);
 title('Original image');
 
@@ -29,7 +29,7 @@ pixelsH = 8;
 horizCells = size(src,2) / pixelsW;
 vertCells = size(src,1) / pixelsH;
 
-
+%%% Get histogram of grayscale image
 numBins = 9;
 hist = zeros(vertCells, horizCells, numBins);
 for r = 1:vertCells
@@ -39,3 +39,10 @@ for r = 1:vertCells
         hist(r,c,:) = GetHistogram(mag, ang, j, i, pixelsH, pixelsW, 9);
     end
 end
+
+%%% Perform block normalization
+blocksize = 2;      % cells per block in both directions (i.e. 2x2 block)
+horizBlocks = horizCells - (blocksize - 1);
+vertBlocks = vertCells - (blocksize - 1);
+histNormal = zeros(vertCells, horizCells, numBins);
+normalizedHist = BlockNormalize(hist, blocksize, vertBlocks, horizBlocks);
