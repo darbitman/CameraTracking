@@ -5,13 +5,8 @@
 // ct namespace (camera tracking)
 namespace ct {
 
-  // bind a CannyEdgeDetector to input data
-  struct CannyStruct {
-    CannyEdgeDetector* edgeDetector_;
-    cv::Mat src;
-    cv::Mat dst;
-    cv::Mat detectedEdges;
-  };
+  // forward declaration
+  struct CannyStruct;
 
 
   class CannyEdgeDetector {
@@ -28,6 +23,15 @@ namespace ct {
     int32_t ratio_;
     int32_t kernelSize_;
 
+  };
+
+
+  // bind a CannyEdgeDetector to input data
+  struct CannyStruct {
+    CannyEdgeDetector* edgeDetector_;
+    cv::Mat src;
+    cv::Mat dst;
+    cv::Mat detectedEdges;
   };
 
 }
