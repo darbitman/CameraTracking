@@ -7,12 +7,14 @@ namespace ct {
   class HOG {
   public:
     // creates a Histogram of Oriented Gradients object given standard parameters from the original paper
-    HOG(uint32_t cellSize = 2, uint32_t cellsPerBlock = 2, uint32_t binSize = 9);
+    // default parameters from HOG paper
+    HOG(uint32_t blockSize = 16, uint32_t blockStride = 8, uint32_t cellSize = 8, uint32_t nbins = 9);
 
-    void RunHOG(const cv::Mat& grayscaleImg, cv::Mat& descriptors);
+    void RunHOG(const cv::Mat& grayscaleImg, std::vector<float>& descriptors);
   private:
+    uint32_t blockSize_;
+    uint32_t blockStride_;
     uint32_t cellSize_;
-    uint32_t cellsPerBlock_;
-    uint32_t binSize_;
+    uint32_t nbins_;
   };
 }
