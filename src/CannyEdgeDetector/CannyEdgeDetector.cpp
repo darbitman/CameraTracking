@@ -1,7 +1,7 @@
 #include "CannyEdgeDetector.h"
 
 
-ct::CannyEdgeDetector::CannyEdgeDetector(int32_t lowThreshold, int32_t maxLowThreshold, int32_t ratio, int32_t kernelSize) {
+ct::CannyEdgeDetector::CannyEdgeDetector(double lowThreshold, double maxLowThreshold, double ratio, int32_t kernelSize) {
   lowThreshold_ = lowThreshold;
   maxLowThreshold_ = maxLowThreshold;
   ratio_ = ratio;
@@ -16,22 +16,17 @@ bool ct::CannyEdgeDetector::RunEdgeDetector(CannyStruct& data) const {
     return false;
   }
 
+  // local intermediate image
   cv::Mat srcGrayscale;
 
   // first convert picture to grayscale
   cv::cvtColor(data.src, srcGrayscale, CV_BGR2GRAY);
 
   // apply gaussian blur to filter noise
-  cv::GaussianBlur(srcGrayscale, data.detectedEdges, cv::Size(3, 3), 0);
+  cv::GaussianBlur(srcGrayscale, srcGrayscale, cv::Size(3, 3), 0);
 
   // Run Canny edge detector
-  cv::Canny(data.detectedEdges, data.detectedEdges, lowThreshold_, lowThreshold_ * ratio_, kernelSize_);
-  
-  // set background of result to be black
-  data.dst = cv::Scalar::all(0);
-
-  // using detectedEdges as mask, copy pixels from src to dst in the locations where detectedEdges is nonzero
-  data.src.copyTo(data.dst, data.detectedEdges);
+  cv::Canny(srcGrayscale, data.detectedEdges, lowThreshold_, lowThreshold_ * ratio_, kernelSize_);
 
   // if you get here edge detector was successful
   return true;
