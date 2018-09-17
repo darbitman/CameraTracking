@@ -1,12 +1,11 @@
 #pragma once
-#include "Camera.h"
 #include <opencv2/opencv.hpp>
 #include <stdint.h>
 #include <iostream>
 
 namespace ct {
 
-  class IPCam : public Camera {
+  class IPCam {
   public:
     // create new IP camera instance
     IPCam(cv::String location);
@@ -25,6 +24,7 @@ namespace ct {
 
   protected:
     cv::VideoCapture cap_;
+    cv::String location_;
   };
 
 }

@@ -1,23 +1,25 @@
-#include "IPCam.h"
+#include "Webcam.h"
 #include <iostream>
 
 int main() {
-  ct::IPCam cam1("http://webcam01.bigskyresort.com/mjpg/video.mjpg");
-  cam1.openStream();
-  cv::namedWindow("Live Feed");
+  ct::Webcam w(0);
+  w.openStream();
+
+  cv::namedWindow("Webcam");
   cv::Mat frame;
 
   while (true) {
-    bool success = cam1.getFrame(frame);
+    bool success = w.getFrame(frame);
     if (!success) {
       std::cout << "Cannot read frame from feed" << std::endl;
       break;
     }
-    imshow("Live Feed", frame);
+    imshow("Webcam", frame);
     if (cv::waitKey(30) == 27) {
       std::cout << "Esc key pressed" << std::endl;
       break;
     }
   }
+
   return 0;
 }
