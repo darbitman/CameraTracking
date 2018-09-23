@@ -39,3 +39,4 @@ bool ct::Webcam::getFrame(cv::Mat& frame) {
   }
   return cap_.read(frame);
 }
+

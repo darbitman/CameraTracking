@@ -11,9 +11,6 @@ namespace ct {
     // create new webcam
     Webcam(uint32_t index);
 
-    Webcam(const Webcam& rhs) = delete;
-    //Webcam& operator=(const Webcam& rhs) = delete;
-
     // cleanup resources/close stream
     ~Webcam();
 
@@ -22,6 +19,8 @@ namespace ct {
     // get single frame from source
     bool getFrame(cv::Mat& frame);
 
+    Webcam(const Webcam& rhs) = delete;
+    //Webcam& operator=(const Webcam& rhs) = delete;
   protected:
     cv::VideoCapture cap_;
     uint32_t index_;
