@@ -1,5 +1,6 @@
 #include "LocalCameraManager.h"
 
+
 ct::LocalCameraManager::LocalCameraManager() {
   this->cameraCount_ = 0;
   this->nextCameraIterator_ = 0;
@@ -9,6 +10,8 @@ ct::LocalCameraManager::LocalCameraManager() {
     cv::VideoCapture c;
     // try opening stream and check if stream isn't already mapped
     if (c.open(index) && indexToCamMap_.count(index) == 0) {
+      // free resources 
+      c.release();
       indexToCamMap_[index] = Webcam(index);
       index++;
       this->cameraCount_++;
@@ -63,4 +66,15 @@ bool ct::LocalCameraManager::getCameraAtIndex(uint32_t index, Webcam*& camPtr) {
   }
   camPtr = &indexToCamMap_[index];
   return true;
+}
+
+
+bool ct::LocalCameraManager::getNextCamera(Webcam*& camPtr) {
+  uint32_t index = 0;
+  if (getNextCameraIndex(index)) {
+    return getCameraAtIndex(index, camPtr);
+  }
+  else {
+    return false;
+  }
 }

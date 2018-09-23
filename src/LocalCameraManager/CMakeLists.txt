@@ -1,5 +1,6 @@
 find_package(OpenCV REQUIRED)
-include_directories("../../include/LocalCameraManager" "../../include/Camera")
+include_directories("../../include/LocalCameraManager"
+                    "../../include/Camera")
 add_library(LocalCameraManager "")
 target_sources(LocalCameraManager PRIVATE
                "LocalCameraManager.cpp"
