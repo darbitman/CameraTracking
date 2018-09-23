@@ -1,22 +1,20 @@
 #include "CannyEdgeDetector.h"
 
 
-ct::CannyEdgeDetector::CannyEdgeDetector(double lowThreshold, double maxLowThreshold, double ratio, int32_t kernelSize) {
-  lowThreshold_ = lowThreshold;
-  maxLowThreshold_ = maxLowThreshold;
-  ratio_ = ratio;
+ct::CannyEdgeDetector::CannyEdgeDetector(double lowThreshold, double highThreshold, int32_t kernelSize) {
+  this->lowThreshold_ = lowThreshold;
+  this->highThreshold_ = highThreshold;
   kernelSize_ = kernelSize;
 }
 
 
-bool ct::CannyEdgeDetector::RunEdgeDetector(CannyStruct& data) const {
-  // can't run edge detector if the one bound to the data isn't the same one that's used
+bool ct::CannyEdgeDetector::runEdgeDetector(CannyStruct& data) const {
   // can't run edge detector on empty input data
-  if (data.edgeDetectorPtr_ != this || data.src.empty() || data.edgeDetectorPtr_ == nullptr) {
+  if (data.src.empty()) {
     return false;
   }
 
-  // local intermediate image
+  // intermediate image used for grayscale and gaussian blur
   cv::Mat srcGrayscale;
 
   // first convert picture to grayscale
@@ -26,8 +24,24 @@ bool ct::CannyEdgeDetector::RunEdgeDetector(CannyStruct& data) const {
   cv::GaussianBlur(srcGrayscale, srcGrayscale, cv::Size(3, 3), 0);
 
   // Run Canny edge detector
-  cv::Canny(srcGrayscale, data.detectedEdges, lowThreshold_, lowThreshold_ * ratio_, kernelSize_);
+  // output to data.detectedEdges
+  cv::Canny(srcGrayscale, data.detectedEdges, this->lowThreshold_, this->highThreshold_, this->kernelSize_);
 
   // if you get here edge detector was successful
   return true;
+}
+
+
+void ct::CannyEdgeDetector::setLowThreshold(double th) {
+  this->lowThreshold_ = th;
+}
+
+
+void ct::CannyEdgeDetector::setHighThreshold(double th) {
+  this->highThreshold_ = th;
+}
+
+
+void ct::CannyEdgeDetector::setKernelSize(int32_t size) {
+  this->kernelSize_ = size;
 }

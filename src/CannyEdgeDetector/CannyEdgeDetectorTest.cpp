@@ -2,15 +2,27 @@
 #include "CannyEdgeDetector.h"
 ct::CannyStruct cs;
 
-void CannyUpdate(int val, void* det) {
-	std::cout << val << std::endl;
+void UpdateCannyLowThreshold(int val, void* det) {
+	std::cout << "Low threshold: " << val << std::endl;
 	ct::CannyEdgeDetector* ced = reinterpret_cast<ct::CannyEdgeDetector*>(det);
-	ced->lowThreshold_ = val;
-	ced->RunEdgeDetector(cs);
+  ced->setLowThreshold(val);
+	ced->runEdgeDetector(cs);
 	imshow("Filtered Image", cs.detectedEdges);
 }
 
+void UpdateCannyHighThreshold(int val, void* det) {
+  std::cout << "High threshold: " << val << std::endl;
+  ct::CannyEdgeDetector* ced = reinterpret_cast<ct::CannyEdgeDetector*>(det);
+  ced->setHighThreshold(val);
+  ced->runEdgeDetector(cs);
+  imshow("Filtered Image", cs.detectedEdges);
+}
+
 int main() {
+  int lowTh = 100;
+  int highTh = 200;
+  int maxTh = 255;
+
   // read image file
   cv::Mat img = cv::imread("../../../images/guitar.png");
 
@@ -24,13 +36,13 @@ int main() {
   cv::namedWindow("Image");
   imshow("Image", img);
 
-  ct::CannyEdgeDetector ced(100.0, 200.0, 1.3);
+  ct::CannyEdgeDetector ced((double)lowTh, (double)highTh);
 
-  cs.edgeDetector_ = &ced;
   cs.src = img;
-  ced.RunEdgeDetector(cs);
+  ced.runEdgeDetector(cs);
   cv::namedWindow("Filtered Image");
-  cv::createTrackbar("Ratio: ", "Filtered Image", (int*)&ced.lowThreshold_, ced.maxLowThreshold_, CannyUpdate, &ced);
+  cv::createTrackbar("Low Threshold", "Filtered Image", &lowTh, maxTh, UpdateCannyLowThreshold, &ced);
+  cv::createTrackbar("High Threshold", "Filtered Image", &highTh, maxTh, UpdateCannyHighThreshold, &ced);
   imshow("Filtered Image", cs.detectedEdges);
 
 
