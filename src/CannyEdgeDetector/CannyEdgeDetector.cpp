@@ -12,7 +12,7 @@ ct::CannyEdgeDetector::CannyEdgeDetector(double lowThreshold, double maxLowThres
 bool ct::CannyEdgeDetector::RunEdgeDetector(CannyStruct& data) const {
   // can't run edge detector if the one bound to the data isn't the same one that's used
   // can't run edge detector on empty input data
-  if (data.edgeDetector_ != this || data.src.empty() || data.edgeDetector_ == nullptr) {
+  if (data.edgeDetectorPtr_ != this || data.src.empty() || data.edgeDetectorPtr_ == nullptr) {
     return false;
   }
 

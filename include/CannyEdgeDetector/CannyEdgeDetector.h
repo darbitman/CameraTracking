@@ -28,7 +28,7 @@ namespace ct {
 
   // bind a CannyEdgeDetector to input data
   struct CannyStruct {
-    CannyEdgeDetector* edgeDetector_;
+    CannyEdgeDetector* edgeDetectorPtr_;
     cv::Mat src;
     cv::Mat detectedEdges;
   };
