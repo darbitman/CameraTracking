@@ -1,15 +1,11 @@
 #include "Webcam.h"
 #include <iostream>
-
+using namespace std;
 int main() {
   ct::Webcam w(0);
-  
 
   ct::Webcam w2;
   w2 = w;
-
-  w.openStream();
-  w2.openStream();
 
   cv::namedWindow("Webcam");
   cv::Mat frame;

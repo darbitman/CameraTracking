@@ -8,18 +8,18 @@ ct::Webcam::Webcam(uint32_t index) {
 
 ct::Webcam::~Webcam() {
   // if stream is open, close it/release its resources
-  if (cap_.isOpened()) {
-    cap_.release();
+  if (this->cap_.isOpened()) {
+    this->cap_.release();
   }
 }
 
 
 bool ct::Webcam::openStream() {
   // if stream is close, try opening it
-  if (!cap_.isOpened()) {
-    cap_.open(this->index_);
+  if (!this->cap_.isOpened()) {
+    this->cap_.open(this->index_);
   }
-  if (cap_.isOpened()) {
+  if (this->cap_.isOpened()) {
     return true;
   }
   // failed to open stream
@@ -40,3 +40,14 @@ bool ct::Webcam::getFrame(cv::Mat& frame) {
   return cap_.read(frame);
 }
 
+
+ct::Webcam& ct::Webcam::operator=(Webcam& rhs) {
+  // need to open stream before performaning a copy of cv::VideoCapture
+  rhs.openStream();
+  this->cap_ = rhs.cap_;
+  this->index_ = rhs.index_;
+  if (!this->cap_.isOpened()) {
+    this->cap_.open(this->index_);
+  }
+  return *this;
+}
