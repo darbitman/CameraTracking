@@ -37,7 +37,7 @@ bool ct::Webcam::getFrame(cv::Mat& frame) {
     std::cin.get();
     return false;
   }
-  return cap_.read(frame);
+  return this->cap_.read(frame);
 }
 
 
