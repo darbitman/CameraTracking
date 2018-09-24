@@ -9,6 +9,7 @@ ct::Webcam::Webcam(uint32_t index) {
 ct::Webcam::~Webcam() {
   // if stream is open, close it/release its resources
   if (this->cap_.isOpened()) {
+    std::cout << "Closing webcam resources" << std::endl;
     this->cap_.release();
   }
 }
