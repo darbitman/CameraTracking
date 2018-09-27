@@ -1,6 +1,7 @@
 #include "IPCam.h"
 #include <iostream>
 
+
 int main() {
   ct::IPCam cam1("http://webcam01.bigskyresort.com/mjpg/video.mjpg");
   cam1.openStream();

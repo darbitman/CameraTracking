@@ -12,17 +12,21 @@ namespace ct {
     // create new webcam
     Webcam(uint32_t index);
 
+    // deleted copy constructor
+    Webcam(const Webcam& rhs) = delete;
+
     // cleanup resources/close stream
     ~Webcam();
 
+    // open stream given by Webcam::index_
     bool openStream();
 
     // get single frame from source
-    bool getFrame(cv::Mat& frame);
+    bool getFrame(cv::Mat& outFrame);
 
+    // assignment operator
     Webcam& operator=(Webcam& rhs);
 
-    Webcam(const Webcam& rhs) = delete;
   protected:
     cv::VideoCapture cap_;
     uint32_t index_;

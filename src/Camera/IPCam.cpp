@@ -8,12 +8,14 @@ ct::IPCam::IPCam(cv::String location) {
 
 ct::IPCam::IPCam(const IPCam& rhs) {
   this->location_ = rhs.location_;
+  this->openStream();
 }
 
 
 ct::IPCam::~IPCam() {
   // if stream is open, close it/release its resources
   if (cap_.isOpened()) {
+    std::cout << "Closing IPcam resources" << std::endl;
     cap_.release();
   }
 }
@@ -36,11 +38,11 @@ bool ct::IPCam::openStream() {
 }
 
 
-bool ct::IPCam::getFrame(cv::Mat& frame) {
+bool ct::IPCam::getFrame(cv::Mat& outFrame) {
   if (!cap_.isOpened()) {
     std::cout << "Stream not opened" << std::endl;
     std::cin.get();
     return false;
   }
-  return cap_.read(frame);
+  return cap_.read(outFrame);
 }

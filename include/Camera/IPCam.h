@@ -7,7 +7,9 @@ namespace ct {
 
   class IPCam {
   public:
-    // create new IP camera instance
+    IPCam() {}
+
+    // create new IP camera
     IPCam(cv::String location);
 
     // copy constructor
@@ -16,11 +18,14 @@ namespace ct {
     // cleanup resources/close stream
     ~IPCam();
 
-    // open stream given by Camera::location_
-    virtual bool openStream();
+    // open stream given by IPCam::location_
+    bool openStream();
 
     // get single frame from source
-    virtual bool getFrame(cv::Mat& frame);
+    bool getFrame(cv::Mat& outFrame);
+
+    // delete assignment operator
+    IPCam& operator=(IPCam& rhs);
 
   protected:
     cv::VideoCapture cap_;

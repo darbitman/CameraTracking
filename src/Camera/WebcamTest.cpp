@@ -1,6 +1,8 @@
 #include "Webcam.h"
 #include <iostream>
+
 using namespace std;
+
 int main() {
   ct::Webcam w(0);
 

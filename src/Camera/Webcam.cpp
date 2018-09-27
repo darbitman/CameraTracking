@@ -32,13 +32,13 @@ bool ct::Webcam::openStream() {
 }
 
 
-bool ct::Webcam::getFrame(cv::Mat& frame) {
+bool ct::Webcam::getFrame(cv::Mat& outFrame) {
   if (!cap_.isOpened()) {
     std::cout << "Stream not opened" << std::endl;
     std::cin.get();
     return false;
   }
-  return this->cap_.read(frame);
+  return this->cap_.read(outFrame);
 }
 
 
