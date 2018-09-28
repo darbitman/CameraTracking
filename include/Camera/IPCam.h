@@ -25,7 +25,7 @@ namespace ct {
     bool getFrame(cv::Mat& outFrame);
 
     // delete assignment operator
-    IPCam& operator=(IPCam& rhs);
+    IPCam& operator=(IPCam& rhs) = delete;
 
   protected:
     cv::VideoCapture cap_;

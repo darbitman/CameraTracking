@@ -7,13 +7,16 @@ namespace ct {
 
   class Webcam {
   public:
-    Webcam() {}
+    Webcam() = delete;
 
     // create new webcam
-    Webcam(uint32_t index);
+    explicit Webcam(int32_t index);
 
     // deleted copy constructor
     Webcam(const Webcam& rhs) = delete;
+
+    // move ctor
+    Webcam(Webcam&& rhs);
 
     // cleanup resources/close stream
     ~Webcam();
@@ -28,8 +31,8 @@ namespace ct {
     Webcam& operator=(Webcam& rhs);
 
   protected:
-    cv::VideoCapture cap_;
-    uint32_t index_;
+    cv::VideoCapture *cap_;
+    int32_t index_;
   };
 
 }
