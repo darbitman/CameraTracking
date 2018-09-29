@@ -7,16 +7,13 @@ namespace ct {
 
   class Webcam {
   public:
-    Webcam() = delete;
+    Webcam();
 
     // create new webcam
     explicit Webcam(int32_t index);
 
-    // deleted copy constructor
-    Webcam(const Webcam& rhs) = delete;
-
-    // move ctor
-    Webcam(Webcam&& rhs);
+    // copy constructor
+    Webcam(const Webcam& rhs);
 
     // cleanup resources/close stream
     ~Webcam();
@@ -28,10 +25,10 @@ namespace ct {
     bool getFrame(cv::Mat& outFrame);
 
     // assignment operator
-    Webcam& operator=(Webcam& rhs);
+    Webcam& operator=(const Webcam& rhs);
 
   protected:
-    cv::VideoCapture *cap_;
+    std::shared_ptr<cv::VideoCapture> cap_;
     int32_t index_;
   };
 

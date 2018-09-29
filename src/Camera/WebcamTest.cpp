@@ -7,12 +7,14 @@ int main() {
   ct::Webcam w(0);
   w.openStream();
 
+  ct::Webcam x;
+  x = w;
 
   cv::namedWindow("Webcam");
   cv::Mat frame;
 
   while (true) {
-    bool success = w.getFrame(frame);
+    bool success = x.getFrame(frame);
     if (!success) {
       std::cout << "Cannot read frame from feed" << std::endl;
       break;
