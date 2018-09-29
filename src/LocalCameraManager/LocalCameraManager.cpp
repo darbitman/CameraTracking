@@ -1,4 +1,5 @@
 #include "LocalCameraManager.h"
+#include <iostream>
 
 
 ct::LocalCameraManager::LocalCameraManager() {
@@ -55,7 +56,7 @@ bool ct::LocalCameraManager::getNextCameraIndex(uint32_t& outIndex) {
 }
 
 
-bool ct::LocalCameraManager::getCameraAtIndex(uint32_t index, Webcam*& outCamPtr) {
+bool ct::LocalCameraManager::getCameraAtIndex(uint32_t index, Webcam& outCamRef) {
   // no cameras are managed
   if (this->cameraCount_ == 0) {
     return false;
@@ -64,15 +65,15 @@ bool ct::LocalCameraManager::getCameraAtIndex(uint32_t index, Webcam*& outCamPtr
   if (this->indexToCamMap_.count(index) == 0) {
     return false;
   }
-  outCamPtr = &indexToCamMap_[index];
+  outCamRef = indexToCamMap_[index];
   return true;
 }
 
 
-bool ct::LocalCameraManager::getNextCamera(Webcam*& outCamPtr) {
+bool ct::LocalCameraManager::getNextCamera(Webcam& outCamRef) {
   uint32_t index = 0;
   if (getNextCameraIndex(index)) {
-    return getCameraAtIndex(index, outCamPtr);
+    return getCameraAtIndex(index, outCamRef);
   }
   else {
     return false;

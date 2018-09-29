@@ -2,10 +2,10 @@
 #include "Webcam.h"
 #include <opencv2/opencv.hpp>
 #include <stdint.h>
-#include <iostream>
 
 
 using std::map;
+
 
 namespace ct {
   class LocalCameraManager {
@@ -28,13 +28,13 @@ namespace ct {
     // returns true if operation completed sucessfully
     // pointer to a Webcam object is returned through return parameter
     // pointer is passed by reference so client must pass in a pointer
-    bool getCameraAtIndex(uint32_t index, Webcam*& outCamPtr);
+    bool getCameraAtIndex(uint32_t index, Webcam& outCamRef);
 
     // get next camera
     // returns true if operation completed sucessfully
     // pointer to a Webcam object is returned through return parameter
     // pointer is passed by reference so client must pass in a pointer
-    bool getNextCamera(Webcam*& outCamPtr);
+    bool getNextCamera(Webcam& outCamRef);
 
     LocalCameraManager(const LocalCameraManager& rhs) = delete;
     LocalCameraManager& operator=(const LocalCameraManager& rhs) = delete;
