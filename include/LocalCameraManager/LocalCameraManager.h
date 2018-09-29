@@ -8,6 +8,7 @@ using std::map;
 
 
 namespace ct {
+
   class LocalCameraManager {
   public:
     LocalCameraManager();

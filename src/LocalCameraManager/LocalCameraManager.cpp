@@ -11,7 +11,7 @@ ct::LocalCameraManager::LocalCameraManager() {
     cv::VideoCapture c;
     // try opening stream and check if stream isn't already mapped
     if (c.open(index) && this->indexToCamMap_.count(index) == 0) {
-      // free resources 
+      // free resources
       c.release();
       this->indexToCamMap_[index] = Webcam(index);
       index++;
