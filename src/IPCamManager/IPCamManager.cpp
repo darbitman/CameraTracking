@@ -4,7 +4,6 @@
 
 ct::IPCamManager::IPCamManager() {
   this->cameraCount_ = 0;
-  this->nextCameraIterator_ = 0;
   this->nextCameraIndex_ = 0;
 }
 
@@ -17,6 +16,10 @@ bool ct::IPCamManager::addCamera(cv::String location) {
   if (c.openStream()) {
     this->indexToCamMap_[this->nextCameraIndex_++] = c;
     this->cameraCount_++;
+    return true;
+  }
+  else {
+    return false;
   }
 }
 
@@ -38,7 +41,7 @@ uint32_t ct::IPCamManager::getCameraCount() const {
 }
 
 
-bool ct::IPCamManager::getCameraAtIndex(uint32_t index, Webcam& outCamRef) {
+bool ct::IPCamManager::getCameraAtIndex(uint32_t index, ct::IPCam& outCamRef) {
   // no cameras are managed
   if (this->cameraCount_ == 0) {
     return false;
@@ -52,3 +55,7 @@ bool ct::IPCamManager::getCameraAtIndex(uint32_t index, Webcam& outCamRef) {
 }
 
 
+bool ct::IPCamManager::getNextCamera(ct::IPCam& outCamRef) {
+  // TODO
+  return false;
+}

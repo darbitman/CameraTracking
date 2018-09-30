@@ -23,27 +23,22 @@ namespace ct {
     // return number of managed cameras
     uint32_t getCameraCount() const;
 
-    // iterates through cameras
-    // returns true if operation completed successfully
-    // index returned through return parameter
-    bool getNextCameraIndex(uint32_t& outIndex);
-
     // get camera at index
     // returns true if operation completed successfully
     // pointer to an IPCam is returned through return paramter
     // pointer is passed by reference so client must pass in a pointer
-    bool getCameraAtIndex(uint32_t index, Webcam& outCamRef);
+    bool getCameraAtIndex(uint32_t index, IPCam& outCamRef);
 
     // get next camera
     // returns true if operation completed successfully
     // pointer to a IPCam object is returned through return parameter
     // pointer is passed by reference so client must pass in a pointer
-    bool getNextCamera(Webcam& outCamRef);
+    bool getNextCamera(IPCam& outCamRef);
   protected:
+    map<uint32_t, IPCam>::iterator camIter_;
     map<uint32_t, IPCam> indexToCamMap_;
     uint32_t cameraCount_;
     uint32_t nextCameraIndex_;
-    uint32_t nextCameraIterator_;
   };
 
 }
