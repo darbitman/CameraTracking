@@ -7,7 +7,7 @@ namespace ct {
 
   class IPCam {
   public:
-    IPCam() {}
+    IPCam();
 
     // create new IP camera
     IPCam(cv::String location);
@@ -21,6 +21,9 @@ namespace ct {
     // open stream given by IPCam::location_
     bool openStream();
 
+    // open stream if used a default constructor
+    bool openStream(cv::String location);
+
     // get single frame from source
     bool getFrame(cv::Mat& outFrame);
 
@@ -28,7 +31,7 @@ namespace ct {
     IPCam& operator=(IPCam& rhs) = delete;
 
   protected:
-    cv::VideoCapture cap_;
+    std::shared_ptr<cv::VideoCapture> cap_;
     cv::String location_;
   };
 

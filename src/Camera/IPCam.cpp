@@ -1,35 +1,45 @@
 #include "IPCam.h"
 
 
+ct::IPCam::IPCam() {
+  this->cap_ = std::make_shared<cv::VideoCapture>();
+}
+
+
 ct::IPCam::IPCam(cv::String location) {
   this->location_ = location;
+  this->cap_ = std::make_shared<cv::VideoCapture>();
 }
 
 
 ct::IPCam::IPCam(const IPCam& rhs) {
-  this->location_ = rhs.location_;
-  this->openStream();
+  this->cap_ = rhs.cap_;
 }
 
 
 ct::IPCam::~IPCam() {
-  // if stream is open, close it/release its resources
-  if (cap_.isOpened()) {
+  // if only one reference to stream, then its resources can be released
+  if (this->cap_.get() != nullptr && this->cap_.use_count() == 1) {
     std::cout << "Closing IPcam resources" << std::endl;
-    cap_.release();
+    this->cap_->release();
   }
 }
 
 
 bool ct::IPCam::openStream() {
-  // if stream is close, try opening it
-  if (!cap_.isOpened()) {
-    cap_.open(this->location_);
+  if (this->cap_.get() == nullptr || this->location_.size() == 0) {
+    return false;
   }
-  if (cap_.isOpened()) {
+
+  // if stream is closed, try opening it
+  if (!this->cap_->isOpened()) {
+    this->cap_->open(this->location_);
+  }
+
+  // check if managed to open
+  if (cap_->isOpened()) {
     return true;
   }
-  // failed to open stream
   else {
     std::cout << "Stream not opened" << std::endl;
     std::cin.get();
@@ -37,12 +47,17 @@ bool ct::IPCam::openStream() {
   }
 }
 
+bool ct::IPCam::openStream(cv::String location) {
+  this->location_ = location;
+  return this->openStream();
+}
+
 
 bool ct::IPCam::getFrame(cv::Mat& outFrame) {
-  if (!cap_.isOpened()) {
+  if (!cap_->isOpened()) {
     std::cout << "Stream not opened" << std::endl;
     std::cin.get();
     return false;
   }
-  return cap_.read(outFrame);
+  return cap_->read(outFrame);
 }
