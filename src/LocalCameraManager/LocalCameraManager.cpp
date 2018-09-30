@@ -4,7 +4,6 @@
 
 ct::LocalCameraManager::LocalCameraManager() {
   this->cameraCount_ = 0;
-  this->nextCameraIterator_ = 0;
   // search for local cameras and register them with application
   uint32_t index = 0;
   while (true) {
@@ -61,7 +60,8 @@ bool ct::LocalCameraManager::deleteCamera(uint32_t index) {
     // if iterator is pointing to the camera to be deleted, point to the next cam
     if (this->camIter_->first == index) {
       this->camIter_++;
-      // if past the last element, wrap around to front
+      // if past the last element and if at least one cam will remain after deletion
+      // then wrap around to front
       if (this->camIter_ == this->indexToCamMap_.end() && this->cameraCount_ > 1) {
         this->camIter_ = this->indexToCamMap_.begin();
       }
@@ -81,18 +81,6 @@ uint32_t ct::LocalCameraManager::getCameraCount() const {
 }
 
 
-bool ct::LocalCameraManager::getNextCameraIndex(uint32_t& outIndex) {
-  if (this->cameraCount_ == 0) {
-    return false;
-  }
-  else {
-    outIndex = this->nextCameraIterator_;
-    this->nextCameraIterator_ = (this->nextCameraIterator_ + 1) % this->cameraCount_;
-  }
-  return true;
-}
-
-
 bool ct::LocalCameraManager::getCameraAtIndex(uint32_t index, Webcam& outCamRef) {
   // no cameras are managed
   if (this->cameraCount_ == 0) {
@@ -108,14 +96,6 @@ bool ct::LocalCameraManager::getCameraAtIndex(uint32_t index, Webcam& outCamRef)
 
 
 bool ct::LocalCameraManager::getNextCamera(Webcam& outCamRef) {
-  //uint32_t index = 0;
-  //if (getNextCameraIndex(index)) {
-  //  return getCameraAtIndex(index, outCamRef);
-  //}
-  //else {
-  //  return false;
-  //}
-  // TODO use iterator
   if (this->cameraCount_ > 0) {
     outCamRef = this->camIter_->second;
     this->camIter_++;
