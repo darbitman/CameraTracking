@@ -24,10 +24,31 @@ ct::LocalCameraManager::LocalCameraManager() {
 }
 
 
+
 ct::LocalCameraManager::~LocalCameraManager() {}
 
 
-bool ct::LocalCameraManager::DeleteCamera(uint32_t index) {
+bool ct::LocalCameraManager::addCamera(uint32_t index) {
+  // Webcam already registered
+  if (this->indexToCamMap_.count(index) > 0) {
+    return false;
+  }
+  cv::VideoCapture c;
+  // try opening stream and check if stream isn't already mapped
+  if (c.open(index)) {
+    // free resources
+    c.release();
+    this->indexToCamMap_[index] = Webcam(index);
+    this->cameraCount_++;
+    return true;
+  }
+  else {
+    c.release();
+    return false;
+  }
+}
+
+bool ct::LocalCameraManager::deleteCamera(uint32_t index) {
   if (this->indexToCamMap_.count(index) > 0) {
     this->indexToCamMap_.erase(index);
     this->cameraCount_--;

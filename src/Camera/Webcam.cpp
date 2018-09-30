@@ -3,6 +3,7 @@
 
 ct::Webcam::Webcam() {
   this->index_ = -1;
+  this->cap_ = std::make_shared<cv::VideoCapture>();
 };
 
 
@@ -46,6 +47,12 @@ bool ct::Webcam::openStream() {
     std::cin.get();
     return false;
   }
+}
+
+
+bool ct::Webcam::openStream(uint32_t index) {
+  this->index_ = index;
+  return this->openStream();
 }
 
 

@@ -21,6 +21,9 @@ namespace ct {
     // open stream given by Webcam::index_
     bool openStream();
 
+    // open stream if used default constructor
+    bool openStream(uint32_t index);
+
     // get single frame from source
     bool getFrame(cv::Mat& outFrame);
 

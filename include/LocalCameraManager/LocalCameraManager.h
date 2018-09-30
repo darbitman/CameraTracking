@@ -14,8 +14,13 @@ namespace ct {
     LocalCameraManager();
     ~LocalCameraManager();
 
+    // add new IPCam
+    // return true if registered successfully
+    // return false if camera already registered
+    bool addCamera(uint32_t index);
+
     // delete a local camera from the manager and returns true if successful
-    bool DeleteCamera(uint32_t index);
+    bool deleteCamera(uint32_t index);
 
     // return number of managed cameras
     uint32_t getCameraCount() const;
