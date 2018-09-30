@@ -37,7 +37,7 @@ bool ct::IPCam::openStream() {
   }
 
   // check if managed to open
-  if (cap_->isOpened()) {
+  if (this->cap_->isOpened()) {
     return true;
   }
   else {
@@ -54,10 +54,17 @@ bool ct::IPCam::openStream(cv::String location) {
 
 
 bool ct::IPCam::getFrame(cv::Mat& outFrame) {
-  if (!cap_->isOpened()) {
+  if (!this->cap_->isOpened()) {
     std::cout << "Stream not opened" << std::endl;
     std::cin.get();
     return false;
   }
-  return cap_->read(outFrame);
+  return this->cap_->read(outFrame);
+}
+
+
+ct::IPCam& ct::IPCam::operator=(ct::IPCam& rhs) {
+  this->location_ = rhs.location_;
+  this->cap_ = rhs.cap_;
+  return *this;
 }

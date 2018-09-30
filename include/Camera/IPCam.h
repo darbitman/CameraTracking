@@ -27,8 +27,8 @@ namespace ct {
     // get single frame from source
     bool getFrame(cv::Mat& outFrame);
 
-    // delete assignment operator
-    IPCam& operator=(IPCam& rhs) = delete;
+    // assignment operator
+    IPCam& operator=(IPCam& rhs);
 
   protected:
     std::shared_ptr<cv::VideoCapture> cap_;

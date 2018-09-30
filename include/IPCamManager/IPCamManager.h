@@ -42,6 +42,7 @@ namespace ct {
   protected:
     map<uint32_t, IPCam> indexToCamMap_;
     uint32_t cameraCount_;
+    uint32_t nextCameraIndex_;
     uint32_t nextCameraIterator_;
   };
 
