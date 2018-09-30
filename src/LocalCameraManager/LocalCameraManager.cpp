@@ -16,6 +16,10 @@ ct::LocalCameraManager::LocalCameraManager() {
       this->indexToCamMap_[index] = Webcam(index);
       index++;
       this->cameraCount_++;
+      // if first camera added, initialize iterator
+      if (this->cameraCount_ == 1) {
+        this->camIter_ = this->indexToCamMap_.begin();
+      }
     }
     else {
       break;
@@ -40,6 +44,10 @@ bool ct::LocalCameraManager::addCamera(uint32_t index) {
     c.release();
     this->indexToCamMap_[index] = Webcam(index);
     this->cameraCount_++;
+    // adding first camera manually, initialize iterator
+    if (this->cameraCount_ == 1) {
+      this->camIter_ = this->indexToCamMap_.begin();
+    }
     return true;
   }
   else {
@@ -50,6 +58,14 @@ bool ct::LocalCameraManager::addCamera(uint32_t index) {
 
 bool ct::LocalCameraManager::deleteCamera(uint32_t index) {
   if (this->indexToCamMap_.count(index) > 0) {
+    // if iterator is pointing to the camera to be deleted, point to the next cam
+    if (this->camIter_->first == index) {
+      this->camIter_++;
+      // if past the last element, wrap around to front
+      if (this->camIter_ == this->indexToCamMap_.end() && this->cameraCount_ > 1) {
+        this->camIter_ = this->indexToCamMap_.begin();
+      }
+    }
     this->indexToCamMap_.erase(index);
     this->cameraCount_--;
     return true;
@@ -92,9 +108,21 @@ bool ct::LocalCameraManager::getCameraAtIndex(uint32_t index, Webcam& outCamRef)
 
 
 bool ct::LocalCameraManager::getNextCamera(Webcam& outCamRef) {
-  uint32_t index = 0;
-  if (getNextCameraIndex(index)) {
-    return getCameraAtIndex(index, outCamRef);
+  //uint32_t index = 0;
+  //if (getNextCameraIndex(index)) {
+  //  return getCameraAtIndex(index, outCamRef);
+  //}
+  //else {
+  //  return false;
+  //}
+  // TODO use iterator
+  if (this->cameraCount_ > 0) {
+    outCamRef = this->camIter_->second;
+    this->camIter_++;
+    // if past the last element, wrap around to front
+    if (this->camIter_ == this->indexToCamMap_.end()) {
+      this->camIter_ = this->indexToCamMap_.begin();
+    }
   }
   else {
     return false;

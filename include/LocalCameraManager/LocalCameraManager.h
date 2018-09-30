@@ -42,9 +42,12 @@ namespace ct {
     // pointer is passed by reference so client must pass in a pointer
     bool getNextCamera(Webcam& outCamRef);
 
+    
+
     LocalCameraManager(const LocalCameraManager& rhs) = delete;
     LocalCameraManager& operator=(const LocalCameraManager& rhs) = delete;
   private:
+    map<uint32_t, Webcam>::iterator camIter_;
     map<uint32_t, Webcam> indexToCamMap_;
     uint32_t cameraCount_;
     uint32_t nextCameraIterator_;
