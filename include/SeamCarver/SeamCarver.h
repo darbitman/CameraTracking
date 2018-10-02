@@ -30,7 +30,12 @@ namespace ct {
     // find vertical seam to remove
     // returns the seam through output parameter
     // output parameter is passed by reference
-    void findVerticalSeam(vector< vector<double> >& pixelEnergy, vector<int>& outSeam);
+    void findVerticalSeam(const vector< vector<double> >& pixelEnergy, vector<int>& outSeam);
+
+    // find Horizontal seam to remove
+    // returns the seam through output parameter
+    // output parameter is passed by reference
+    void findHorizontalSeam(const vector< vector<double> >& pixelEnergy, vector<int>& outSeam);
 
     // remove seam from img given by pixel locations stored in seam
     // returns the result of the seam removal through output parameter
