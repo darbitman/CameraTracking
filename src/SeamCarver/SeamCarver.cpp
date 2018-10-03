@@ -9,15 +9,62 @@ ct::SeamCarver::~SeamCarver() {
 }
 
 
-bool ct::SeamCarver::removeVerticalSeams(int32_t numSeams, cv::Mat& img, cv::Mat& outImg) {
-  return false;
+void ct::SeamCarver::removeVerticalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg) {
+  outImg = img.clone();
+
+  // split BGR channels
+  vector<cv::Mat> bgr;
+  bgr.resize(3);
+  vector< vector<double> > energy;
+  vector<int> seam;
+
+  // remove seams loop
+  for (int i = 0; i < numSeams; i++) {
+    // split img into 3 channels
+    cv::split(outImg, bgr);
+
+    // compute energy of pixels
+    this->energy(bgr, energy);
+
+    // find vertical seam
+    this->findVerticalSeam(energy, seam);
+    
+    // remove the seam
+    this->removeVerticalSeam(bgr, seam);
+
+    // merge 3 channels into final image
+    cv::merge(bgr, outImg);
+  }
 }
 
 
-bool ct::SeamCarver::removeHorizontalSeams(int32_t numSeams, cv::Mat& img, cv::Mat& outImg) {
-  return false;
-}
+void ct::SeamCarver::removeHorizontalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg) {
+  outImg = img.clone();
 
+  // split BGR channels
+  vector<cv::Mat> bgr;
+  bgr.resize(3);
+  vector< vector<double> > energy;
+  vector<int> seam;
+
+  // remove seams loop
+  for (int i = 0; i < numSeams; i++) {
+    // split img into 3 channels
+    cv::split(outImg, bgr);
+
+    // compute energy of pixels
+    this->energy(bgr, energy);
+
+    // find vertical seam
+    this->findHorizontalSeam(energy, seam);
+
+    // remove the seam
+    this->removeHorizontalSeam(bgr, seam);
+
+    // merge 3 channels into final image
+    cv::merge(bgr, outImg);
+  }
+}
 
 
 bool ct::SeamCarver::energyAt(const vector<cv::Mat>& bgr, int32_t r, int32_t c, double& outEnergy) {
@@ -46,24 +93,19 @@ bool ct::SeamCarver::energyAt(const vector<cv::Mat>& bgr, int32_t r, int32_t c, 
 }
 
 
-bool ct::SeamCarver::energy(const cv::Mat& pixels, vector< vector<double> >& outPixelEnergy) {
-  // split input pixels into separate blue, green, red channels
-  vector<cv::Mat> bgr;
-  bgr.resize(3);
-  cv::split(pixels, bgr);
-
+bool ct::SeamCarver::energy(const vector<cv::Mat>& bgr, vector< vector<double> >& outPixelEnergy) {
   // resize output if necessary
-  if (outPixelEnergy.size() != pixels.size().height) {
-    outPixelEnergy.resize(pixels.size().height);
+  if (outPixelEnergy.size() != bgr[0].size().height) {
+    outPixelEnergy.resize(bgr[0].size().height);
   }
-  if (outPixelEnergy[0].size() != pixels.size().width) {
-    for (int i = 0; i < pixels.size().height; i++) {
-      outPixelEnergy[i].resize(pixels.size().width);
+  if (outPixelEnergy[0].size() != bgr[0].size().width) {
+    for (int i = 0; i < bgr[0].size().height; i++) {
+      outPixelEnergy[i].resize(bgr[0].size().width);
     }
   }
   double computedEnergy = 0.0;
-  for (int r = 0; r < pixels.size().height; r++) {
-    for (int c = 0; c < pixels.size().width; c++) {
+  for (int r = 0; r < bgr[0].size().height; r++) {
+    for (int c = 0; c < bgr[0].size().width; c++) {
       if (this->energyAt(bgr, r, c, computedEnergy)) {
       }
       outPixelEnergy[r][c] = computedEnergy;
@@ -277,11 +319,49 @@ void ct::SeamCarver::findHorizontalSeam(const vector< vector<double> >& pixelEne
 }
 
 
-bool ct::SeamCarver::removeVerticalSeam(cv::Mat& img, cv::Mat& outImg, vector<int>& seam) {
-  return false;
+bool ct::SeamCarver::removeVerticalSeam(vector<cv::Mat>& bgr, const vector<int>& seam) {
+  // for every channel (BGR) move pixels over to the left by one starting at the seam effectively removing the seam
+  for (int32_t i = 0; i < 3; i++) {
+    for (int32_t r = 0; r < bgr[i].size().height; r++) {
+      for (int32_t c = seam[r]; c < bgr[i].size().width - 2; c++) {
+        bgr[i].at<char>(r, c) = bgr[i].at<char>(r, c + 1);
+      }
+    }
+  }
+
+  // remove last column
+  for (int32_t i = 0; i < 3; i++) {
+    bgr[i] = bgr[i].colRange(0, bgr[i].cols - 2);
+  }
+
+  //for (int32_t i = 0; i < 3; i++) {
+  //  for (int32_t r = 0; r < bgr[i].size().height; r++) {
+  //    bgr[i].at<char>(r, seam[r]) = 0;
+  //  }
+  //}
+  return true;
 }
 
 
-bool ct::SeamCarver::removeHorizontalSeam(cv::Mat& img, cv::Mat& outImg, vector<int>& seam) {
-  return false;
+bool ct::SeamCarver::removeHorizontalSeam(vector<cv::Mat>& bgr, const vector<int>& seam) {
+  // for every channel (BGR) move pixels up by one starting at the seam effectively removing the seam
+  for (int32_t i = 0; i < 3; i++) {
+    for (int32_t c = 0; c < bgr[i].size().width; c++) {
+      for (int32_t r = seam[c]; r < bgr[i].size().height - 2; r++) {
+        bgr[i].at<char>(r, c) = bgr[i].at<char>(r + 1, c);
+      }
+    }
+  }
+
+  // remove bottom row
+  for (int32_t i = 0; i < 3; i++) {
+    bgr[i] = bgr[i].rowRange(0, bgr[i].rows - 2);
+  }
+
+  //for (int32_t i = 0; i < 3; i++) {
+  //  for (int32_t r = 0; r < bgr[i].size().height; r++) {
+  //    bgr[i].at<char>(r, seam[r]) = 0;
+  //  }
+  //}
+  return true;
 }
