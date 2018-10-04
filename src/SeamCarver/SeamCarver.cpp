@@ -26,8 +26,6 @@ void ct::SeamCarver::removeVerticalSeams(int32_t numSeams, const cv::Mat& img, c
     // compute energy of pixels
     this->energy(bgr, energy);
 
-    this->displayEnergy(energy);
-
     // find vertical seam
     this->findVerticalSeam(energy, seam);
     
@@ -57,8 +55,6 @@ void ct::SeamCarver::removeHorizontalSeams(int32_t numSeams, const cv::Mat& img,
     // compute energy of pixels
     this->energy(bgr, energy);
 
-    this->displayEnergy(energy);
-
     // find vertical seam
     this->findHorizontalSeam(energy, seam);
 
@@ -68,17 +64,6 @@ void ct::SeamCarver::removeHorizontalSeams(int32_t numSeams, const cv::Mat& img,
     // merge 3 channels into final image
     cv::merge(bgr, outImg);
   }
-}
-
-void ct::SeamCarver::displayEnergy(const vector< vector<double> >& pixelEnergy) {
-  cv::Mat energyImg(pixelEnergy.size(), pixelEnergy[0].size(), CV_8U);
-  for (int32_t r = 0; r < pixelEnergy.size(); r++) {
-    for (int32_t c = 0; c < pixelEnergy[r].size(); c++) {
-      energyImg.at<char>(r, c) = (char)(pixelEnergy[r][c] * 255);
-    }
-  }
-  cv::namedWindow("energy");
-  cv::imshow("energy", energyImg);
 }
 
 
@@ -169,24 +154,21 @@ void ct::SeamCarver::findVerticalSeam(const vector< vector<double> >& pixelEnerg
     // i.e. for each column pixel in the current row
     double minEnergy = this->MARGIN_ENERGY;
     for (uint32_t c = 0; c < pixelEnergy[r].size(); c++) {
+      // initialize minEnergy to pixel above
+      // will check if left/above or right/above is less
+      minEnergy = totalEnergyTo[r - 1][c];
       int32_t minEnergyCol = c;
       // check if left/above is min
       if (c > 0) {
-        if (totalEnergyTo[r - 1][c - 1] <= minEnergy) {
+        if (totalEnergyTo[r - 1][c - 1] < minEnergy) {
           minEnergy = totalEnergyTo[r - 1][c - 1];
           minEnergyCol = c - 1;
         }
       }
 
-      // check if directly above is min
-      if (totalEnergyTo[r - 1][c] <= minEnergy) {
-        minEnergy = totalEnergyTo[r - 1][c];
-        minEnergyCol = c;
-      }
-
       // check if right/above is min
       if (c < pixelEnergy[r].size() - 1) {
-        if (totalEnergyTo[r - 1][c + 1] <= minEnergy) {
+        if (totalEnergyTo[r - 1][c + 1] < minEnergy) {
           minEnergy = totalEnergyTo[r - 1][c + 1];
           minEnergyCol = c + 1;
         }
@@ -273,24 +255,21 @@ void ct::SeamCarver::findHorizontalSeam(const vector< vector<double> >& pixelEne
     // i.e. for each row pixel in the current column
     double minEnergy = this->MARGIN_ENERGY;
     for (uint32_t r = 0; r < pixelEnergy.size(); r++) {
+      // initialize minEnergy to left
+      // will check if left/above or left/below is less
+      minEnergy = totalEnergyTo[r][c - 1];
       int32_t minEnergyRow = r;
       // check if left/above is min
       if (r > 0) {
-        if (totalEnergyTo[r - 1][c - 1] <= minEnergy) {
+        if (totalEnergyTo[r - 1][c - 1] < minEnergy) {
           minEnergy = totalEnergyTo[r - 1][c - 1];
           minEnergyRow = r - 1;
         }
       }
 
-      // check if directly left is min
-      if (totalEnergyTo[r][c - 1] <= minEnergy) {
-        minEnergy = totalEnergyTo[r][c - 1];
-        minEnergyRow = r;
-      }
-
       // check if left/below is min
       if (r < pixelEnergy.size() - 1) {
-        if (totalEnergyTo[r + 1][c - 1]) {
+        if (totalEnergyTo[r + 1][c - 1] < minEnergy) {
           minEnergy = totalEnergyTo[r + 1][c - 1];
           minEnergyRow = r + 1;
         }
@@ -336,7 +315,7 @@ void ct::SeamCarver::findHorizontalSeam(const vector< vector<double> >& pixelEne
 }
 
 
-bool ct::SeamCarver::removeVerticalSeam(vector<cv::Mat>& bgr, const vector<int>& seam) {
+void ct::SeamCarver::removeVerticalSeam(vector<cv::Mat>& bgr, const vector<int>& seam) {
   // for every channel (BGR) move pixels over to the left by one starting at the seam effectively removing the seam
   for (int32_t i = 0; i < 3; i++) {
     for (int32_t r = 0; r < bgr[i].size().height; r++) {
@@ -350,35 +329,21 @@ bool ct::SeamCarver::removeVerticalSeam(vector<cv::Mat>& bgr, const vector<int>&
   for (int32_t i = 0; i < 3; i++) {
     bgr[i] = bgr[i].colRange(0, bgr[i].cols - 2);
   }
-
-  //for (int32_t i = 0; i < 3; i++) {
-  //  for (int32_t r = 0; r < bgr[i].size().height; r++) {
-  //    bgr[i].at<char>(r, seam[r]) = 0;
-  //  }
-  //}
-  return true;
 }
 
 
-bool ct::SeamCarver::removeHorizontalSeam(vector<cv::Mat>& bgr, const vector<int>& seam) {
-  //// for every channel (BGR) move pixels up by one starting at the seam effectively removing the seam
-  //for (int32_t i = 0; i < 3; i++) {
-  //  for (int32_t c = 0; c < bgr[i].size().width; c++) {
-  //    for (int32_t r = seam[c]; r < bgr[i].size().height - 2; r++) {
-  //      bgr[i].at<char>(r, c) = bgr[i].at<char>(r + 1, c);
-  //    }
-  //  }
-  //}
-
-  //// remove bottom row
-  //for (int32_t i = 0; i < 3; i++) {
-  //  bgr[i] = bgr[i].rowRange(0, bgr[i].rows - 2);
-  //}
-
+void ct::SeamCarver::removeHorizontalSeam(vector<cv::Mat>& bgr, const vector<int>& seam) {
+  // for every channel (BGR) move pixels up by one starting at the seam effectively removing the seam
   for (int32_t i = 0; i < 3; i++) {
     for (int32_t c = 0; c < bgr[i].size().width; c++) {
-      bgr[i].at<char>(seam[c], c) = 0;
+      for (int32_t r = seam[c]; r < bgr[i].size().height - 2; r++) {
+        bgr[i].at<char>(r, c) = bgr[i].at<char>(r + 1, c);
+      }
     }
   }
-  return true;
+
+  // remove bottom row
+  for (int32_t i = 0; i < 3; i++) {
+    bgr[i] = bgr[i].rowRange(0, bgr[i].rows - 2);
+  }
 }

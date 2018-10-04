@@ -15,7 +15,6 @@ namespace ct {
     ~SeamCarver();
     void removeVerticalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg);
     void removeHorizontalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg);
-    void displayEnergy(const vector< vector<double> >& pixelEnergy);
 
   private:
     // compute energy of pixel at [r, c]
@@ -41,9 +40,12 @@ namespace ct {
     // remove seam from img given by pixel locations stored in seam
     // returns the result of the seam removal through output parameter
     // output parameter is passed by reference
-    bool removeVerticalSeam(vector<cv::Mat>& bgr, const vector<int>& seam);
+    void removeVerticalSeam(vector<cv::Mat>& bgr, const vector<int>& seam);
 
-    bool removeHorizontalSeam(vector<cv::Mat>& bgr, const vector<int>& seam);
+    // remove seam from img given by pixel locations stored in seam
+    // returns the result of the seam removal through output paramter
+    // output parameter is passed by reference
+    void removeHorizontalSeam(vector<cv::Mat>& bgr, const vector<int>& seam);
 
     // default energy at the border
     const double MARGIN_ENERGY;
