@@ -78,8 +78,8 @@ int main() {
   //imshow("energy clone", energyClone);
 
   cv::Mat result;
-  sc1.removeVerticalSeams(10, img, result);
-  //sc1.removeHorizontalSeams(10, img, result);
+  //sc1.removeVerticalSeams(10, img, result);
+  sc1.removeHorizontalSeams(1, img, result);
 
   cv::namedWindow("Result");
   imshow("Result", result);

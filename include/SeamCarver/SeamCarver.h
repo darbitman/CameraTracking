@@ -15,6 +15,7 @@ namespace ct {
     ~SeamCarver();
     void removeVerticalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg);
     void removeHorizontalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg);
+    void displayEnergy(const vector< vector<double> >& pixelEnergy);
 
   private:
     // compute energy of pixel at [r, c]

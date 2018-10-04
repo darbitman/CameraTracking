@@ -26,6 +26,8 @@ void ct::SeamCarver::removeVerticalSeams(int32_t numSeams, const cv::Mat& img, c
     // compute energy of pixels
     this->energy(bgr, energy);
 
+    this->displayEnergy(energy);
+
     // find vertical seam
     this->findVerticalSeam(energy, seam);
     
@@ -55,6 +57,8 @@ void ct::SeamCarver::removeHorizontalSeams(int32_t numSeams, const cv::Mat& img,
     // compute energy of pixels
     this->energy(bgr, energy);
 
+    this->displayEnergy(energy);
+
     // find vertical seam
     this->findHorizontalSeam(energy, seam);
 
@@ -64,6 +68,17 @@ void ct::SeamCarver::removeHorizontalSeams(int32_t numSeams, const cv::Mat& img,
     // merge 3 channels into final image
     cv::merge(bgr, outImg);
   }
+}
+
+void ct::SeamCarver::displayEnergy(const vector< vector<double> >& pixelEnergy) {
+  cv::Mat energyImg(pixelEnergy.size(), pixelEnergy[0].size(), CV_8U);
+  for (int32_t r = 0; r < pixelEnergy.size(); r++) {
+    for (int32_t c = 0; c < pixelEnergy[r].size(); c++) {
+      energyImg.at<char>(r, c) = (char)(pixelEnergy[r][c] * 255);
+    }
+  }
+  cv::namedWindow("energy");
+  cv::imshow("energy", energyImg);
 }
 
 
@@ -144,6 +159,7 @@ void ct::SeamCarver::findVerticalSeam(const vector< vector<double> >& pixelEnerg
     totalEnergyTo[r][totalEnergyTo[r].size() - 1] =
       totalEnergyTo[r - 1][totalEnergyTo[r].size() - 1] + pixelEnergy[r][pixelEnergy[r].size() - 1];
 
+    // previous pixel used to get to current pixel at left and right margins
     // previous pixel's column to get to the current pixel
     // save the previous column since we know that the previous row is just r - 1
     colTo[r][0] = 0;
@@ -228,7 +244,7 @@ void ct::SeamCarver::findHorizontalSeam(const vector< vector<double> >& pixelEne
   totalEnergyTo.resize(pixelEnergy.size());
   rowTo.resize(pixelEnergy.size());
 
-  // resize number of columns for each row
+  // resize each row to the number of columns
   for (uint32_t r = 0; r < pixelEnergy.size(); r++) {
     totalEnergyTo[r].resize(pixelEnergy[r].size());
     rowTo[r].resize(pixelEnergy[r].size());
@@ -237,7 +253,7 @@ void ct::SeamCarver::findHorizontalSeam(const vector< vector<double> >& pixelEne
   // initialize first column
   for (uint32_t r = 0; r < totalEnergyTo.size(); r++) {
     totalEnergyTo[r][0] = pixelEnergy[r][0];
-    rowTo[r][0] = 01;
+    rowTo[r][0] = -1;
   }
 
   for (uint32_t c = 1; c < pixelEnergy[0].size(); c++) {
@@ -247,6 +263,7 @@ void ct::SeamCarver::findHorizontalSeam(const vector< vector<double> >& pixelEne
     totalEnergyTo[totalEnergyTo.size() - 1][c] =
       totalEnergyTo[totalEnergyTo.size() - 1][c - 1] + pixelEnergy[pixelEnergy.size() - 1][c];
 
+    // previous pixel used to get to current pixel at top and bottom margin
     // previous pixel's row to get to the current pixel
     // save the previous row since we know that the previous column is just c - 1
     rowTo[0][c] = 0;
@@ -344,24 +361,24 @@ bool ct::SeamCarver::removeVerticalSeam(vector<cv::Mat>& bgr, const vector<int>&
 
 
 bool ct::SeamCarver::removeHorizontalSeam(vector<cv::Mat>& bgr, const vector<int>& seam) {
-  // for every channel (BGR) move pixels up by one starting at the seam effectively removing the seam
-  for (int32_t i = 0; i < 3; i++) {
-    for (int32_t c = 0; c < bgr[i].size().width; c++) {
-      for (int32_t r = seam[c]; r < bgr[i].size().height - 2; r++) {
-        bgr[i].at<char>(r, c) = bgr[i].at<char>(r + 1, c);
-      }
-    }
-  }
-
-  // remove bottom row
-  for (int32_t i = 0; i < 3; i++) {
-    bgr[i] = bgr[i].rowRange(0, bgr[i].rows - 2);
-  }
-
+  //// for every channel (BGR) move pixels up by one starting at the seam effectively removing the seam
   //for (int32_t i = 0; i < 3; i++) {
-  //  for (int32_t r = 0; r < bgr[i].size().height; r++) {
-  //    bgr[i].at<char>(r, seam[r]) = 0;
+  //  for (int32_t c = 0; c < bgr[i].size().width; c++) {
+  //    for (int32_t r = seam[c]; r < bgr[i].size().height - 2; r++) {
+  //      bgr[i].at<char>(r, c) = bgr[i].at<char>(r + 1, c);
+  //    }
   //  }
   //}
+
+  //// remove bottom row
+  //for (int32_t i = 0; i < 3; i++) {
+  //  bgr[i] = bgr[i].rowRange(0, bgr[i].rows - 2);
+  //}
+
+  for (int32_t i = 0; i < 3; i++) {
+    for (int32_t c = 0; c < bgr[i].size().width; c++) {
+      bgr[i].at<char>(seam[c], c) = 0;
+    }
+  }
   return true;
 }
