@@ -327,7 +327,7 @@ void ct::SeamCarver::removeVerticalSeam(vector<cv::Mat>& bgr, const vector<int>&
 
   // remove last column
   for (int32_t i = 0; i < 3; i++) {
-    bgr[i] = bgr[i].colRange(0, bgr[i].cols - 2);
+    bgr[i] = bgr[i].colRange(0, bgr[i].cols - 1);
   }
 }
 
@@ -344,6 +344,6 @@ void ct::SeamCarver::removeHorizontalSeam(vector<cv::Mat>& bgr, const vector<int
 
   // remove bottom row
   for (int32_t i = 0; i < 3; i++) {
-    bgr[i] = bgr[i].rowRange(0, bgr[i].rows - 2);
+    bgr[i] = bgr[i].rowRange(0, bgr[i].rows - 1);
   }
 }
