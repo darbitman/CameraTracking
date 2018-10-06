@@ -8,13 +8,32 @@ using std::vector;
 
 
 namespace ct {
+  typedef void (*energyFunc)(const cv::Mat& img, vector< vector<double> >& outPixelEnergy);
 
   class SeamCarver {
   public:
     SeamCarver(double margin_energy = 624.6198844097);
     ~SeamCarver();
-    void removeVerticalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg);
-    void removeHorizontalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg);
+
+    /**
+     * @brief remove vertical seams
+     * @param numSeams number of vertical seams to remove
+     * @param img input image
+     * @param outImg output paramter
+     * @param computeEnergy pointer to a user-defined energy function. If one is not provided, internal one will be used
+     * @return bool indicates whether seam removal was successful or not
+     */
+    bool removeVerticalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergy = nullptr);
+
+    /**
+     * @brief remove horizontal seams
+     * @param numSeams number of vertical seams to remove
+     * @param img input image
+     * @param outImg output paramter
+     * @param computeEnergy pointer to a user-defined energy function. If one is not provided, internal one will be used
+     * @return bool indicates whether seam removal was successful or not
+     */
+    bool removeHorizontalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergy = nullptr);
 
   private:
     // compute energy of pixel at [r, c]
@@ -25,16 +44,20 @@ namespace ct {
     // compute energy for every pixel
     // returns the result through output parameter
     // output parameter is passed by reference
-    bool energy(const vector<cv::Mat>& bgr, vector< vector<double> >& outPixelEnergy);
+    void energy(const vector<cv::Mat>& bgr, vector< vector<double> >& outPixelEnergy);
 
-    // find vertical seam to remove
-    // returns the seam through output parameter
-    // output parameter is passed by reference
+    /**
+     * @brief find vertical seam to remove
+     * @param pixelEnergy calculated pixel energy of image
+     * @param outSeam output paramter
+     */
     void findVerticalSeam(const vector< vector<double> >& pixelEnergy, vector<int>& outSeam);
 
-    // find Horizontal seam to remove
-    // returns the seam through output parameter
-    // output parameter is passed by reference
+    /**
+     * @brief find horizontal seam to remove
+     * @param pixelEnergy calculated pixel energy of image
+     * @param outSeam output paramter
+     */
     void findHorizontalSeam(const vector< vector<double> >& pixelEnergy, vector<int>& outSeam);
 
     // remove seam from img given by pixel locations stored in seam

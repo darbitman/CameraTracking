@@ -1,7 +1,13 @@
 #include "SeamCarver.h"
 #include <iostream>
 
+
 using namespace std;
+
+
+void efn(const cv::Mat& img, vector< vector<double> >& outPixelEnergy) {
+  cout << "Alternate energy function" << endl;
+}
 
 int main() {
   cv::Mat m(10, 15, CV_32S);
@@ -10,7 +16,7 @@ int main() {
   m.at<int32_t>(9, 14) = -12;
   cout << "row 9, col 14 = " << m.at<int32_t>(9, 14) << endl;
 
-  cv::Mat img = cv::imread("../../../images/beach.jpg", CV_LOAD_IMAGE_COLOR);
+  cv::Mat img = cv::imread("../../../images/guitar.png", CV_LOAD_IMAGE_COLOR);
   //vector<cv::Mat> bgr;
   //bgr.resize(3);
   //cv::split(img, bgr);
@@ -78,7 +84,7 @@ int main() {
   //imshow("energy clone", energyClone);
 
   cv::Mat result;
-  sc1.removeVerticalSeams(25, img, result);
+  sc1.removeVerticalSeams(25, img, result, efn);
   //sc1.removeHorizontalSeams(20, img, result);
 
   cv::namedWindow("Result");
