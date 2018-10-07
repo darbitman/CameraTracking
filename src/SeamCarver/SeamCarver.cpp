@@ -214,13 +214,15 @@ void ct::SeamCarver::findVerticalSeam(const vector< vector<double> >& pixelEnerg
         }
       }
 
-      // assign cumulative energy to current pixel and the column of the previous pixel
-      // check if all parent pixels have been previously used
+      // assign cumulative energy to current pixel and save the column of the previous pixel
       if (minEnergyCol == -1) {
-        // current pixel is unreachable from parent pixels so its energy is max
+        // current pixel is unreachable from parent pixels since they are all marked
+        // set energy to reach current pixel to +INF
         totalEnergyTo[r][c] = std::numeric_limits<double>::max();
       }
-      totalEnergyTo[r][c] = minEnergy + pixelEnergy[r][c];
+      else {
+        totalEnergyTo[r][c] = minEnergy + pixelEnergy[r][c];
+      }
       colTo[r][c] = minEnergyCol;
     }
   }
@@ -229,10 +231,10 @@ void ct::SeamCarver::findVerticalSeam(const vector< vector<double> >& pixelEnerg
   // initialize total energy to the bottom-lefthand corner
   // will find a pixel that is in the seam of least total energy (if it exists)
   int32_t bottomRow = totalEnergyTo.size() - 1;
-  double minTotalEnergy = totalEnergyTo[bottomRow][0];
-  int32_t minTotalEnergyCol = 0;
-  for (uint32_t c = 1; c < totalEnergyTo[bottomRow].size(); c++) {
-    if (totalEnergyTo[bottomRow][c] < minTotalEnergy) {
+  double minTotalEnergy = std::numeric_limits<double>::max();
+  int32_t minTotalEnergyCol = -1;
+  for (uint32_t c = 0; c < totalEnergyTo[bottomRow].size(); c++) {
+    if (!marked[bottomRow][c] && totalEnergyTo[bottomRow][c] < minTotalEnergy) {
       minTotalEnergy = totalEnergyTo[bottomRow][c];
       minTotalEnergyCol = c;
     }
