@@ -40,9 +40,10 @@ namespace ct {
     /**
      * @brief find vertical seam to remove
      * @param pixelEnergy calculated pixel energy of image
+     * @param marked previously marked pixels for seam removal
      * @param outSeam output paramter
      */
-    void findVerticalSeam(const vector< vector<double> >& pixelEnergy, vector<int>& outSeam);
+    void findVerticalSeam(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vector<int>& outSeam);
 
     /**
      * @brief find horizontal seam to remove
