@@ -36,14 +36,21 @@ namespace ct {
     bool removeHorizontalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergy = nullptr);
 
   private:
-    // compute energy of pixel at [r, c]
-    // returns the result of the calculation through output parameter
-    // output parameter is passed by reference
+    /**
+     * @brief compute energy of pixel at [r, c]
+     * @param bgr image separated into 3 channels (BLUE GREEN RED)
+     * @param r pixel row
+     * @param c pixel column
+     * @param outEnergy output paramter
+     * @return bool indicates whether computation was successful
+     */
     bool energyAt(const vector<cv::Mat>& bgr, int32_t r, int32_t c, double& outEnergy);
 
-    // compute energy for every pixel
-    // returns the result through output parameter
-    // output parameter is passed by reference
+    /**
+     * @brief compute energy for every pixel of image
+     * @param bgr image separate into 3 channels (BLUE GREEN RED)
+     * @param outPixelEnergy output parameter
+     */
     void energy(const vector<cv::Mat>& bgr, vector< vector<double> >& outPixelEnergy);
 
     /**
@@ -60,14 +67,18 @@ namespace ct {
      */
     void findHorizontalSeam(const vector< vector<double> >& pixelEnergy, vector<int>& outSeam);
 
-    // remove seam from img given by pixel locations stored in seam
-    // returns the result of the seam removal through output parameter
-    // output parameter is passed by reference
+    /**
+     * @brief remove vertical seam from img given by column locations stored in seam
+     * @param bgr image separate into 3 channels (BLUE GREEN RED)
+     * @param seam column locations of which pixel to remove, where the seam index is the row
+     */
     void removeVerticalSeam(vector<cv::Mat>& bgr, const vector<int>& seam);
 
-    // remove seam from img given by pixel locations stored in seam
-    // returns the result of the seam removal through output paramter
-    // output parameter is passed by reference
+    /**
+     * @brief remove horizontal seam from img given by row locations stored in seam
+     * @param bgr image separate into 3 channels (BLUE GREEN RED)
+     * @param seam row locations of which pixel to remove, where the seam index is the column
+     */
     void removeHorizontalSeam(vector<cv::Mat>& bgr, const vector<int>& seam);
 
     // default energy at the border
