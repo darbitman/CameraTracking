@@ -8,12 +8,13 @@ using std::vector;
 
 
 namespace ct {
-  typedef void (*energyFunc)(const cv::Mat& img, vector< vector<double> >& outPixelEnergy);
+  typedef void(*energyFunc)(const cv::Mat& img, vector< vector<double> >& outPixelEnergy);
 
   class SeamCarver {
   public:
-    SeamCarver(double margin_energy = 624.6198844097);
-    ~SeamCarver();
+    SeamCarver(double margin_energy = 624.6198844097) : MARGIN_ENERGY(margin_energy) {}
+
+    ~SeamCarver() {}
 
     /**
      * @brief remove vertical seams
@@ -36,23 +37,6 @@ namespace ct {
     bool removeHorizontalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergy = nullptr);
 
   private:
-    /**
-     * @brief compute energy of pixel at [r, c]
-     * @param bgr image separated into 3 channels (BLUE GREEN RED)
-     * @param r pixel row
-     * @param c pixel column
-     * @param outEnergy output paramter
-     * @return bool indicates whether computation was successful
-     */
-    bool energyAt(const vector<cv::Mat>& bgr, int32_t r, int32_t c, double& outEnergy);
-
-    /**
-     * @brief compute energy for every pixel of image
-     * @param bgr image separate into 3 channels (BLUE GREEN RED)
-     * @param outPixelEnergy output parameter
-     */
-    void energy(const vector<cv::Mat>& bgr, vector< vector<double> >& outPixelEnergy);
-
     /**
      * @brief find vertical seam to remove
      * @param pixelEnergy calculated pixel energy of image
@@ -81,7 +65,24 @@ namespace ct {
      */
     void removeHorizontalSeam(vector<cv::Mat>& bgr, const vector<int>& seam);
 
-    // default energy at the border
+    /**
+     * @brief compute energy of pixel at [r, c]
+     * @param bgr image separated into 3 channels (BLUE GREEN RED)
+     * @param r pixel row
+     * @param c pixel column
+     * @param outEnergy output paramter
+     * @return bool indicates whether computation was successful
+     */
+    bool energyAt(const vector<cv::Mat>& bgr, int32_t r, int32_t c, double& outEnergy);
+
+    /**
+     * @brief compute energy for every pixel of image
+     * @param bgr image separate into 3 channels (BLUE GREEN RED)
+     * @param outPixelEnergy output parameter
+     */
+    void energy(const vector<cv::Mat>& bgr, vector< vector<double> >& outPixelEnergy);
+
+    // default energy at the borders of the image
     const double MARGIN_ENERGY;
   };
 
