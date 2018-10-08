@@ -12,7 +12,7 @@ namespace ct {
 
   class SeamCarver {
   public:
-    SeamCarver(double margin_energy = 624.6198844097) : MARGIN_ENERGY(margin_energy) {}
+    SeamCarver(double margin_energy = 624.6198844097104) : MARGIN_ENERGY(margin_energy) {}
 
     ~SeamCarver() {}
 
@@ -42,8 +42,9 @@ namespace ct {
      * @param pixelEnergy calculated pixel energy of image
      * @param marked previously marked pixels for seam removal
      * @param outSeam output paramter
+     * @return bool indicates success
      */
-    void findVerticalSeam(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vector<int>& outSeam);
+    bool findVerticalSeam(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vector<int>& outSeam);
 
     /**
      * @brief find horizontal seam to remove
