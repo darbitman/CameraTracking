@@ -15,9 +15,9 @@ bool ct::SeamCarver::removeVerticalSeams(int32_t numSeams, const cv::Mat& img, c
 
   // output of the seam finding function
   // input to the seam removal function
-  // first index is the seam number; second index are the column locations in that seam number
-  vector< vector<int32_t> > seams;
-  seams.resize(numSeams);
+  // vector of minimum-oriented priority queues. Each row in the vector corresponds to a priority queue for that row in the image
+  vecMinPQ seams;
+  seams.resize(img.size().height);
 
   // vector to store pixels that have been previously marked for removal
   // will ignore these marked pixels when searching for a new seam
@@ -58,7 +58,7 @@ bool ct::SeamCarver::removeVerticalSeams(int32_t numSeams, const cv::Mat& img, c
     //cv::namedWindow("test");
     
     for (int32_t i = 0; i < numSeams; i++) {
-      this->findVerticalSeam(pixelEnergy, marked, seams[i]);
+      this->findVerticalSeam(pixelEnergy, marked, seams);
       //for (int r = 0; r < img.size().height; r++) {
       //  for (int j = 0; j < 3; j++) {
       //    bgr[j].at<uchar>(r, seams[i][r]) = 0;
@@ -69,18 +69,26 @@ bool ct::SeamCarver::removeVerticalSeams(int32_t numSeams, const cv::Mat& img, c
     }
 
     /*** sort seam vectors according to their first element ***/
-    struct {
-      bool operator()(const vector<int32_t>& a, const vector<int32_t>& b) {
-        return a[0] < b[0];
-      }
-    } compFunc;
-    std::sort(seams.begin(), seams.end(), compFunc);
+    //struct {
+    //  bool operator()(const vector<int32_t>& a, const vector<int32_t>& b) {
+    //    return a[0] < b[0];
+    //  }
+    //} compFunc;
+    //std::sort(seams.begin(), seams.end(), compFunc);
 
-    for (int i = 0; i < numSeams; i++) {
-      for (int r = 0; r < img.size().height; r++) {
-        for (int j = 0; j < 3; j++) {
-          bgr[j].at<uchar>(r, seams[i][r]) = (i % 2 ? 0 : 125);
+    int32_t col = 0;
+    for (int32_t r = 0; r < seams.size(); r++) {
+      int32_t count = 1;
+      while (seams[r].size()) {
+        col = seams[r].top();
+        seams[r].pop();
+        int32_t rightBorder = (seams[r].size() ? seams[r].top() : img.size().width);
+        for (int c = col + 1; c < rightBorder; c++) {
+          for (int j = 0; j < 3; j++) {
+            bgr[j].at<uchar>(r, c - count) = bgr[j].at<uchar>(r, c);
+          }
         }
+        count++;
       }
     }
 
@@ -158,9 +166,13 @@ bool ct::SeamCarver::removeHorizontalSeams(int32_t numSeams, const cv::Mat& img,
 }
 
 
-bool ct::SeamCarver::findVerticalSeam(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vector<int>& outSeam) {
+bool ct::SeamCarver::findVerticalSeam(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeam) {
   if (pixelEnergy.size() == 0) {
     throw std::out_of_range("Pixel energy vector is empty\n");
+  }
+
+  if (outSeam.size() != pixelEnergy.size()) {
+    throw std::out_of_range("outSeam does not have enough rows\n");
   }
 
   // totalEnergyTo array will store cumulative energy to each pixel
@@ -286,31 +298,26 @@ bool ct::SeamCarver::findVerticalSeam(const vector< vector<double> >& pixelEnerg
 
   /*** FIND SEAM BY TRACING BACKWARDS ***/
 
-  // ensure output vector is big enough to store the height of the pixel array (i.e. number of rows)
-  if (outSeam.size() != totalEnergyTo.size()) {
-    outSeam.resize(totalEnergyTo.size());
-  }
-
   // set bottom row's pixel column as endpoint of seam
   // found in previous step looking for min total energy endpoint
-  outSeam[bottomRow] = minTotalEnergyCol;
+  outSeam[bottomRow].push(minTotalEnergyCol);
   
   // mark the column of the pixel in the bottom row
   marked[bottomRow][minTotalEnergyCol] = true;
 
-  int32_t col = 0;
+  int32_t col = minTotalEnergyCol;
   // trace path upwards
   for (int32_t r = bottomRow - 1; r >= 0; r--) {
-    // save column of pixel to remove from row below
-    col = outSeam[r + 1];
-
     // using the below pixel's row and column, extract the column of the pixel in the current row
     //   that will be removed as part of the "min" energy seam
     // save the column of the pixel in the current row
-    outSeam[r] = colTo[r + 1][col];
+    outSeam[r].push(colTo[r + 1][col]);
+
+    // update to current column
+    col = colTo[r + 1][col];
 
     // mark the column of the pixel in the current row
-    marked[r][outSeam[r]] = true;
+    marked[r][col] = true;
   }
 
   return true;

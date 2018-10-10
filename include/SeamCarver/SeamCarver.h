@@ -2,13 +2,16 @@
 #include <opencv2/opencv.hpp>
 #include <stdint.h>
 #include <iostream>
+#include <queue>
 
 
 using std::vector;
+using std::priority_queue;
 
 
 namespace ct {
   typedef void(*energyFunc)(const cv::Mat& img, vector< vector<double> >& outPixelEnergy);
+  typedef vector< priority_queue<int32_t, vector<int32_t>, std::greater<int32_t> > > vecMinPQ;
 
   class SeamCarver {
   public:
@@ -44,7 +47,7 @@ namespace ct {
      * @param outSeam output paramter
      * @return bool indicates success
      */
-    bool findVerticalSeam(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vector<int>& outSeam);
+    bool findVerticalSeam(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeam);
 
     /**
      * @brief find horizontal seam to remove
