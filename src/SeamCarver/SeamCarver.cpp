@@ -16,7 +16,7 @@ bool ct::SeamCarver::removeVerticalSeams(int32_t numSeams, const cv::Mat& img, c
   // output of the seam finding function
   // input to the seam removal function
   // first index is the seam number; second index are the column locations in that seam number
-  vector< vector<int> > seams;
+  vector< vector<int32_t> > seams;
   seams.resize(numSeams);
 
   // vector to store pixels that have been previously marked for removal
@@ -25,13 +25,13 @@ bool ct::SeamCarver::removeVerticalSeams(int32_t numSeams, const cv::Mat& img, c
 
   // resize marked matrix to the same size as img
   marked.resize(img.size().height);
-  for (int r = 0; r < img.size().height; r++) {
+  for (int32_t r = 0; r < img.size().height; r++) {
     marked[r].resize(img.size().width);
   }
 
   // initialize marked matrix to false
-  for (int r = 0; r < img.size().height; r++) {
-    for (int c = 0; c < img.size().width; c++) {
+  for (int32_t r = 0; r < img.size().height; r++) {
+    for (int32_t c = 0; c < img.size().width; c++) {
       marked[r][c] = false;
     }
   }
@@ -57,7 +57,7 @@ bool ct::SeamCarver::removeVerticalSeams(int32_t numSeams, const cv::Mat& img, c
     }
     //cv::namedWindow("test");
     
-    for (int i = 0; i < numSeams; i++) {
+    for (int32_t i = 0; i < numSeams; i++) {
       this->findVerticalSeam(pixelEnergy, marked, seams[i]);
       //for (int r = 0; r < img.size().height; r++) {
       //  for (int j = 0; j < 3; j++) {
@@ -68,15 +68,23 @@ bool ct::SeamCarver::removeVerticalSeams(int32_t numSeams, const cv::Mat& img, c
       //cv::imshow("test", outImg);
     }
 
-    //for (int i = 0; i < numSeams; i++) {
-    //  for (int r = 0; r < img.size().height; r++) {
-    //    for (int j = 0; j < 3; j++) {
-    //      bgr[j].at<uchar>(r, seams[i][r]) = 0;
-    //    }
-    //  }
-    //}
+    /*** sort seam vectors according to their first element ***/
+    struct {
+      bool operator()(const vector<int32_t>& a, const vector<int32_t>& b) {
+        return a[0] < b[0];
+      }
+    } compFunc;
+    std::sort(seams.begin(), seams.end(), compFunc);
 
-    //cv::merge(bgr, outImg);
+    for (int i = 0; i < numSeams; i++) {
+      for (int r = 0; r < img.size().height; r++) {
+        for (int j = 0; j < 3; j++) {
+          bgr[j].at<uchar>(r, seams[i][r]) = (i % 2 ? 0 : 125);
+        }
+      }
+    }
+
+    cv::merge(bgr, outImg);
 
     //// remove multiple seams
     //for (int i = 0; i < numSeams; i++) {
