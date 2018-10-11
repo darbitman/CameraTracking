@@ -27,7 +27,7 @@ namespace ct {
      * @param computeEnergy pointer to a user-defined energy function. If one is not provided, internal one will be used
      * @return bool indicates whether seam removal was successful or not
      */
-    bool removeVerticalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergy = nullptr);
+    bool findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergy = nullptr);
 
     /**
      * @brief remove horizontal seams
@@ -61,7 +61,7 @@ namespace ct {
      * @param bgr image separate into 3 channels (BLUE GREEN RED)
      * @param seam column locations of which pixel to remove, where the seam index is the row
      */
-    void removeVerticalSeam(vector<cv::Mat>& bgr, const vector<int>& seam);
+    void removeVerticalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams);
 
     /**
      * @brief remove horizontal seam from img given by row locations stored in seam

@@ -2,7 +2,7 @@
 #include <limits>
 
 
-bool ct::SeamCarver::removeVerticalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergy) {
+bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergy) {
   // check if removing more seams than columns available
   if (numSeams > img.size().width) {
     return false;
@@ -76,21 +76,24 @@ bool ct::SeamCarver::removeVerticalSeams(int32_t numSeams, const cv::Mat& img, c
     //} compFunc;
     //std::sort(seams.begin(), seams.end(), compFunc);
 
-    int32_t col = 0;
-    for (int32_t r = 0; r < seams.size(); r++) {
-      int32_t count = 1;
-      while (seams[r].size()) {
-        col = seams[r].top();
-        seams[r].pop();
-        int32_t rightBorder = (seams[r].size() ? seams[r].top() : img.size().width);
-        for (int c = col + 1; c < rightBorder; c++) {
-          for (int j = 0; j < 3; j++) {
-            bgr[j].at<uchar>(r, c - count) = bgr[j].at<uchar>(r, c);
-          }
-        }
-        count++;
-      }
-    }
+    //int32_t col = 0;
+    //for (int32_t r = 0; r < seams.size(); r++) {
+    //  int32_t count = 0;
+    //  while (seams[r].size()) {
+    //    count++;
+    //    col = seams[r].top();
+    //    seams[r].pop();
+    //    int32_t rightBorder = (seams[r].size() ? seams[r].top() : img.size().width);
+    //    for (int c = col + 1; c < rightBorder; c++) {
+    //      for (int j = 0; j < 3; j++) {
+    //        bgr[j].at<uchar>(r, c - count) = bgr[j].at<uchar>(r, c);
+    //      }
+    //    }
+    //    count++;
+    //  }
+    //}
+
+    this->removeVerticalSeams(bgr, seams);
 
     cv::merge(bgr, outImg);
 
@@ -428,19 +431,43 @@ void ct::SeamCarver::findHorizontalSeam(const vector< vector<double> >& pixelEne
 }
 
 
-void ct::SeamCarver::removeVerticalSeam(vector<cv::Mat>& bgr, const vector<int>& seam) {
-  // for every channel (BGR) move pixels over to the left by one starting at the seam effectively removing the seam
-  for (int32_t i = 0; i < 3; i++) {
-    for (int32_t r = 0; r < bgr[i].size().height; r++) {
-      for (int32_t c = seam[r]; c < bgr[i].size().width - 2; c++) {
-        bgr[i].at<char>(r, c) = bgr[i].at<char>(r, c + 1);
+void ct::SeamCarver::removeVerticalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams) {
+  // each row of seams stores an ordered queue of pixels to remove in that row
+  //   starting with the min number column
+  // each time a new column is encountered, move the pixels to the right of it
+  //   (up until the next column number) to the left by the number of pixels already removed
+  // 
+
+  int32_t colToRemove = 0;
+  int32_t numSeamsRemoved = 0;
+  /*** REMOVE PIXELS FOR EVERY ROW ***/
+  for (int32_t r = 0; r < seams.size(); r++) {
+    // count the number of seams to the left of the current pixel
+    //   to indicate how many spaces to move pixels that aren't being removed to the left
+    numSeamsRemoved = 0;
+    // loop through all pixels to remove in current row
+    while (seams[r].size()) {
+      numSeamsRemoved++;
+      // column location of pixel to remove in row r
+      colToRemove = seams[r].top();
+      seams[r].pop();
+      // mark right endpoint/next pixel column
+      int32_t rightColBorder = (seams[r].size() ? seams[r].top() : bgr[0].size().width);
+      // starting at the column to the right of the column to remove move the pixel to the left
+      //   by the number of seams to the left of the pixel
+      //   until the right end point which is either the last column or the next column to remove
+      //   whichever comes first
+      for (int c = colToRemove + 1; c < rightColBorder; c++) {
+        for (int j = 0; j < 3; j++) {
+          bgr[j].at<uchar>(r, c - numSeamsRemoved) = bgr[j].at<uchar>(r, c);
+        }
       }
     }
   }
 
-  // remove last column
-  for (int32_t i = 0; i < 3; i++) {
-    bgr[i] = bgr[i].colRange(0, bgr[i].cols - 1);
+  /*** SHRINK IMAGE ***/
+  for (int i = 0; i < 3; i++) {
+    bgr[i] = bgr[i].colRange(0, bgr[i].cols - numSeamsRemoved);
   }
 }
 
