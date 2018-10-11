@@ -20,7 +20,7 @@ namespace ct {
     ~SeamCarver() {}
 
     /**
-     * @brief remove vertical seams
+     * @brief find and remove vertical seams
      * @param numSeams number of vertical seams to remove
      * @param img input image
      * @param outImg output paramter
@@ -44,10 +44,10 @@ namespace ct {
      * @brief find vertical seam to remove
      * @param pixelEnergy calculated pixel energy of image
      * @param marked previously marked pixels for seam removal
-     * @param outSeam output paramter
+     * @param outSeams output paramter (vector of priority queues)
      * @return bool indicates success
      */
-    bool findVerticalSeam(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeam);
+    bool findVerticalSeam(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeams);
 
     /**
      * @brief find horizontal seam to remove
@@ -59,7 +59,8 @@ namespace ct {
     /**
      * @brief remove vertical seam from img given by column locations stored in seam
      * @param bgr image separate into 3 channels (BLUE GREEN RED)
-     * @param seam column locations of which pixel to remove, where the seam index is the row
+     * @param seams vector of priority queues that hold the columns for the pixels to remove
+     *              for each row, where the index into the vector is the row number
      */
     void removeVerticalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams);
 

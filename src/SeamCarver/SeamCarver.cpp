@@ -8,7 +8,7 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
     return false;
   }
 
-  /*** declare vectors that will be used throughout the seam removal process ***/
+  /*** DECLARE VECTORS THAT WILL BE USED THROUGHOUT THE SEAM REMOVAL PROCESS ***/
   // output of the function to compute energy
   // input to the seam finding function
   vector< vector<double> > pixelEnergy;
@@ -59,55 +59,13 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
     
     for (int32_t i = 0; i < numSeams; i++) {
       this->findVerticalSeam(pixelEnergy, marked, seams);
-      //for (int r = 0; r < img.size().height; r++) {
-      //  for (int j = 0; j < 3; j++) {
-      //    bgr[j].at<uchar>(r, seams[i][r]) = 0;
-      //  }
-      //}
-      //cv::merge(bgr, outImg);
-      //cv::imshow("test", outImg);
     }
-
-    /*** sort seam vectors according to their first element ***/
-    //struct {
-    //  bool operator()(const vector<int32_t>& a, const vector<int32_t>& b) {
-    //    return a[0] < b[0];
-    //  }
-    //} compFunc;
-    //std::sort(seams.begin(), seams.end(), compFunc);
-
-    //int32_t col = 0;
-    //for (int32_t r = 0; r < seams.size(); r++) {
-    //  int32_t count = 0;
-    //  while (seams[r].size()) {
-    //    count++;
-    //    col = seams[r].top();
-    //    seams[r].pop();
-    //    int32_t rightBorder = (seams[r].size() ? seams[r].top() : img.size().width);
-    //    for (int c = col + 1; c < rightBorder; c++) {
-    //      for (int j = 0; j < 3; j++) {
-    //        bgr[j].at<uchar>(r, c - count) = bgr[j].at<uchar>(r, c);
-    //      }
-    //    }
-    //    count++;
-    //  }
-    //}
-
+    
+    // remove seams found from the 3 separate channel
     this->removeVerticalSeams(bgr, seams);
 
+    // combine separate channels into output image
     cv::merge(bgr, outImg);
-
-    //// remove multiple seams
-    //for (int i = 0; i < numSeams; i++) {
-    //  // find vertical seam
-    //  this->findVerticalSeam(energy, seam);
-
-    //  // remove the seam
-    //  this->removeVerticalSeam(bgr, seam);
-
-    //  // merge 3 channels into final image
-    //  cv::merge(bgr, outImg);
-    //}
   }
   catch (std::out_of_range e) {
     std::cout << e.what() << std::endl;
@@ -169,13 +127,13 @@ bool ct::SeamCarver::removeHorizontalSeams(int32_t numSeams, const cv::Mat& img,
 }
 
 
-bool ct::SeamCarver::findVerticalSeam(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeam) {
+bool ct::SeamCarver::findVerticalSeam(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeams) {
   if (pixelEnergy.size() == 0) {
     throw std::out_of_range("Pixel energy vector is empty\n");
   }
 
-  if (outSeam.size() != pixelEnergy.size()) {
-    throw std::out_of_range("outSeam does not have enough rows\n");
+  if (outSeams.size() != pixelEnergy.size()) {
+    throw std::out_of_range("outSeams does not have enough rows\n");
   }
 
   // totalEnergyTo array will store cumulative energy to each pixel
@@ -206,30 +164,6 @@ bool ct::SeamCarver::findVerticalSeam(const vector< vector<double> >& pixelEnerg
   }
 
   for (uint32_t r = 1; r < pixelEnergy.size(); r++) {
-    //// energy at left and right margins
-    //// energy to current pixel is cumulative energy to previous pixel + energy of current pixel
-    //// if previously marked, set energy to +INF
-    //if (!marked[r][0]) {
-    //  totalEnergyTo[r][0] = totalEnergyTo[r - 1][0] + pixelEnergy[r][0];
-    //}
-    //else {
-    //  totalEnergyTo[r][0] = std::numeric_limits<double>::max();
-    //}
-
-    //if (!marked[r][totalEnergyTo[r].size() - 1]) {
-    //  totalEnergyTo[r][totalEnergyTo[r].size() - 1] =
-    //    totalEnergyTo[r - 1][totalEnergyTo[r].size() - 1] + pixelEnergy[r][pixelEnergy[r].size() - 1];
-    //}
-    //else {
-    //  totalEnergyTo[r][totalEnergyTo[r].size() - 1] = std::numeric_limits<double>::max();
-    //}
-
-    //// previous pixel used to get to current pixel at left and right margins
-    //// previous pixel's column to get to the current pixel
-    //// save the previous column since we know that the previous row is just r - 1
-    //colTo[r][0] = 0;
-    //colTo[r][colTo[r].size() - 1] = colTo[r].size() - 1;
-
     // find minimum energy path from previous row to every pixel in the current row
     // initialize min energy to +INF
     // initialize the previous column to -1 to set error state
@@ -241,10 +175,6 @@ bool ct::SeamCarver::findVerticalSeam(const vector< vector<double> >& pixelEnerg
 
       // save some cycles by not doing any comparisons if the current pixel has been previously marked
       if (!marked[r][c]) {
-        //// initialize minEnergy to pixel above
-        //// will check if left/above or right/above is less
-        //minEnergy = totalEnergyTo[r - 1][c];
-
         // check above
         if (!marked[r - 1][c] && totalEnergyTo[r - 1][c] < minEnergy) {
           minEnergy = totalEnergyTo[r - 1][c];
@@ -303,7 +233,7 @@ bool ct::SeamCarver::findVerticalSeam(const vector< vector<double> >& pixelEnerg
 
   // set bottom row's pixel column as endpoint of seam
   // found in previous step looking for min total energy endpoint
-  outSeam[bottomRow].push(minTotalEnergyCol);
+  outSeams[bottomRow].push(minTotalEnergyCol);
   
   // mark the column of the pixel in the bottom row
   marked[bottomRow][minTotalEnergyCol] = true;
@@ -314,7 +244,7 @@ bool ct::SeamCarver::findVerticalSeam(const vector< vector<double> >& pixelEnerg
     // using the below pixel's row and column, extract the column of the pixel in the current row
     //   that will be removed as part of the "min" energy seam
     // save the column of the pixel in the current row
-    outSeam[r].push(colTo[r + 1][col]);
+    outSeams[r].push(colTo[r + 1][col]);
 
     // update to current column
     col = colTo[r + 1][col];
@@ -441,7 +371,7 @@ void ct::SeamCarver::removeVerticalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams) 
   int32_t colToRemove = 0;
   int32_t numSeamsRemoved = 0;
   /*** REMOVE PIXELS FOR EVERY ROW ***/
-  for (int32_t r = 0; r < seams.size(); r++) {
+  for (uint32_t r = 0; r < seams.size(); r++) {
     // count the number of seams to the left of the current pixel
     //   to indicate how many spaces to move pixels that aren't being removed to the left
     numSeamsRemoved = 0;
