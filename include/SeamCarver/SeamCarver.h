@@ -37,14 +37,14 @@ namespace ct {
      * @param computeEnergy pointer to a user-defined energy function. If one is not provided, internal one will be used
      * @return bool indicates whether seam removal was successful or not
      */
-    bool removeHorizontalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergy = nullptr);
+    bool findAndRemoveHorizontalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergy = nullptr);
 
   private:
     /**
      * @brief find vertical seam to remove
      * @param pixelEnergy calculated pixel energy of image
      * @param marked previously marked pixels for seam removal
-     * @param outSeams output paramter (vector of priority queues)
+     * @param outSeams output parameter (vector of priority queues)
      * @return bool indicates success
      */
     bool findVerticalSeam(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeams);
@@ -52,9 +52,11 @@ namespace ct {
     /**
      * @brief find horizontal seam to remove
      * @param pixelEnergy calculated pixel energy of image
-     * @param outSeam output paramter
+     * @param marked previously marked pixels for seam removal
+     * @param outSeams output parameter (vector of priority queues)
+     * @return bool indicates success
      */
-    void findHorizontalSeam(const vector< vector<double> >& pixelEnergy, vector<int>& outSeam);
+    void findHorizontalSeam(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeams);
 
     /**
      * @brief remove vertical seam from img given by column locations stored in seam
@@ -69,7 +71,7 @@ namespace ct {
      * @param bgr image separate into 3 channels (BLUE GREEN RED)
      * @param seam row locations of which pixel to remove, where the seam index is the column
      */
-    void removeHorizontalSeam(vector<cv::Mat>& bgr, const vector<int>& seam);
+    void removeHorizontalSeam(vector<cv::Mat>& bgr, vecMinPQ& seams);
 
     /**
      * @brief compute energy of pixel at [r, c]
