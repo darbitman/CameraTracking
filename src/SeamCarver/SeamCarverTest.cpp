@@ -1,13 +1,30 @@
 #include "SeamCarver.h"
 #include <iostream>
-
+#include <thread>
+#include <chrono>
 using namespace std;
+using namespace std::chrono;
 
 void efn(const cv::Mat& img, vector< vector<double> >& outPixelEnergy) {
   cout << "Alternate energy function" << endl;
 }
 
+void f1(int32_t i) {
+  cout << i << endl;
+}
+
 int main() {
+  /*
+  int32_t I = 10;
+  vector<thread> threadVec;
+  threadVec.resize(I);
+  for (int32_t i = 0; i < I; i++) {
+    threadVec[i] = thread(f1, i);
+  }
+  for (int32_t i = 0; i < I; i++) {
+    threadVec[i].join();
+  }
+  */
   //cv::Mat m(10, 15, CV_32S);
   //cout << "height = " << m.size().height << endl;
   //cout << "width  = " << m.size().width << endl;

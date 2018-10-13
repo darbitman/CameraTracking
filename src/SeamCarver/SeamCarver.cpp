@@ -1,10 +1,11 @@
 #include "SeamCarver.h"
 #include <limits>
 #include <chrono>
+#include <thread>
 using namespace std::chrono;
+using std::thread;
 
-
-bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergy) {
+bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergyFn) {
   // check if removing more seams than columns available
   if (numSeams > img.size().width) {
     return false;
@@ -26,24 +27,16 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
   vector< vector<bool> > marked;
 
   {
-    int32_t imgHeight = img.size().height;
-    int32_t imgWidth = img.size().width;
+    int32_t numRows = img.size().height;
+    int32_t numCols = img.size().width;
 
     // resize marked matrix to the same size as img;
-    marked.resize(imgHeight);
-    for (int32_t r = 0; r < imgHeight; r++) {
-      marked[r].resize(imgWidth);
-    }
-
-    // initialize marked matrix to false;
-    for (int32_t r = 0; r < imgHeight; r++) {
-      for (int32_t c = 0; c < imgWidth; c++) {
-        marked[r][c] = false;
-      }
+    // resize on a vector of bools initializes its elements to false by default
+    marked.resize(numRows);
+    for (int32_t r = 0; r < numRows; r++) {
+      marked[r].resize(numCols);
     }
   }
- 
-  outImg = img.clone();
 
   // vector to store the image's channels separately
   vector<cv::Mat> bgr;
@@ -54,10 +47,10 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(stop - start);
     // compute energy of pixels
-    if (computeEnergy == nullptr) {
+    if (computeEnergyFn == nullptr) {
       // split img into 3 channels (BLUE, GREEN, RED)
       start = high_resolution_clock::now();
-      cv::split(outImg, bgr); // ~300-400us
+      cv::split(img, bgr); // ~300-400us
       stop = high_resolution_clock::now();
       duration = duration_cast<microseconds>(stop - start);
       duration.count();
@@ -72,15 +65,13 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
     }
     else {
       // call user-defined energy computation function
-      computeEnergy(outImg, pixelEnergy);
+      computeEnergyFn(img, pixelEnergy);
     }
 
     // find all vertical seams
     start = high_resolution_clock::now();
     for (int32_t i = 0; i < numSeams; i++) {  // ~16sec
-      
       this->findVerticalSeam(pixelEnergy, marked, seams); // ~320ms
-      
     }
     stop = high_resolution_clock::now();
     duration = duration_cast<microseconds>(stop - start);
@@ -190,6 +181,9 @@ bool ct::SeamCarver::findAndRemoveHorizontalSeams(int32_t numSeams, const cv::Ma
 
 
 bool ct::SeamCarver::findVerticalSeam(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeams) {
+  auto start = high_resolution_clock::now();
+  auto stop = high_resolution_clock::now();
+  auto duration = duration_cast<microseconds>(stop - start);
   if (pixelEnergy.size() == 0) {
     throw std::out_of_range("Pixel energy vector is empty\n");
   }
@@ -213,12 +207,17 @@ bool ct::SeamCarver::findVerticalSeam(const vector< vector<double> >& pixelEnerg
   colTo.resize(numRows);
 
   // resize number of columns for each row
+  start = high_resolution_clock::now();
   for (int32_t r = 0; r < numRows; r++) {
     totalEnergyTo[r].resize(numCols);
     colTo[r].resize(numCols);
   }
+  stop = high_resolution_clock::now();
+  duration = duration_cast<microseconds>(stop - start);
+  duration.count();
 
   // initialize top row
+  start = high_resolution_clock::now();
   for (int32_t c = 0; c < numCols; c++) {
     // if previously marked, set its energy to +INF
     if (marked[0][c]) {
@@ -229,7 +228,12 @@ bool ct::SeamCarver::findVerticalSeam(const vector< vector<double> >& pixelEnerg
     }
     colTo[0][c] = -1;
   }
+  stop = high_resolution_clock::now();
+  duration = duration_cast<microseconds>(stop - start);
+  duration.count();
 
+
+  start = high_resolution_clock::now();
   for (int32_t r = 1; r < numRows; r++) {
     // find minimum energy path from previous row to every pixel in the current row
     // initialize min energy to +INF
@@ -268,6 +272,7 @@ bool ct::SeamCarver::findVerticalSeam(const vector< vector<double> >& pixelEnerg
       // assign cumulative energy to current pixel and save the column of the parent pixel
       if (minEnergyCol == -1) {
         // current pixel is unreachable from parent pixels since they are all marked
+        //   OR current pixel already marked
         // set energy to reach current pixel to +INF
         totalEnergyTo[r][c] = posInf;
       }
@@ -277,7 +282,9 @@ bool ct::SeamCarver::findVerticalSeam(const vector< vector<double> >& pixelEnerg
       colTo[r][c] = minEnergyCol;
     }
   }
-
+  stop = high_resolution_clock::now();
+  duration = duration_cast<microseconds>(stop - start);
+  duration.count();
   // find one endpoint of least cumulative energy
   // initialize total energy to +INF to perform linear search
   // will find a pixel that is in the seam of least total energy (if it exists)
@@ -331,6 +338,10 @@ void ct::SeamCarver::findHorizontalSeam(const vector< vector<double> >& pixelEne
   if (outSeams.size() != pixelEnergy.size()) {
     throw std::out_of_range("outSeams does not have enough rows\n");
   }
+}
+
+
+void calculatePathEnergy(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vector< vector<double> >& totalEnergyTo) {
 }
 
 
@@ -419,11 +430,21 @@ void ct::SeamCarver::energy(const vector<cv::Mat>& bgr, vector< vector<double> >
     }
   }
   double computedEnergy = 0.0;
-  for (int r = 0; r < numRows; r++) {
-    for (int c = 0; c < numCols; c++) {
+  for (int32_t r = 0; r < numRows; r++) {
+    for (int32_t c = 0; c < numCols; c++) {
        if (this->energyAt(bgr, r, c, computedEnergy)) {
       }
       outPixelEnergy[r][c] = computedEnergy;
     }
+  }
+}
+
+void ct::SeamCarver::rowEnergy(int32_t r, const vector<cv::Mat>& bgr, vector< vector<double> >& outPixelEnergy) {
+  double computedEnergy = 0.0;
+  int32_t numCols = bgr[0].size().width;
+  for (int c = 0; c < numCols; c++) {
+     if (this->energyAt(bgr, r, c, computedEnergy)) {
+    }
+    outPixelEnergy[r][c] = computedEnergy;
   }
 }

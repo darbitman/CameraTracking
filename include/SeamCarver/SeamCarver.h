@@ -27,7 +27,7 @@ namespace ct {
      * @param computeEnergy pointer to a user-defined energy function. If one is not provided, internal one will be used
      * @return bool indicates whether seam removal was successful or not
      */
-    bool findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergy = nullptr);
+    bool findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergyFn = nullptr);
 
     /**
      * @brief remove horizontal seams
@@ -57,6 +57,14 @@ namespace ct {
      * @return bool indicates success
      */
     void findHorizontalSeam(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeams);
+
+    /**
+    * @brief calculates the energy required to reach bottom row
+    * @param pixelEnergy calculated pixel energy of image
+    * @param marked pixels marked for seam removal
+    * @param totalEnergyTo output parameter: total energy required to reach pixel at r,c
+    */
+    void calculatePathEnergy(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vector< vector<double> >& totalEnergyTo);
 
     /**
      * @brief remove vertical seam from img given by column locations stored in seam
@@ -90,8 +98,13 @@ namespace ct {
      */
     void energy(const vector<cv::Mat>& bgr, vector< vector<double> >& outPixelEnergy);
 
+    void rowEnergy(int32_t r, const vector<cv::Mat>& bgr, vector< vector<double> >& outPixelEnergy);
+    
+    
     // default energy at the borders of the image
     const double MARGIN_ENERGY;
   };
+
+  
 
 }
