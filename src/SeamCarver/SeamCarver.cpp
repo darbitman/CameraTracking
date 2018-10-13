@@ -64,7 +64,7 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
 
       // call built-in energy computation function
       start = high_resolution_clock::now();
-      this->energy(bgr, pixelEnergy); // ~200-250ms
+      this->energy(bgr, pixelEnergy); // ~200ms
       stop = high_resolution_clock::now();
       duration = duration_cast<microseconds>(stop - start);
       duration.count();
@@ -437,18 +437,20 @@ bool ct::SeamCarver::energyAt(const vector<cv::Mat>& bgr, int32_t r, int32_t c, 
 
 
 void ct::SeamCarver::energy(const vector<cv::Mat>& bgr, vector< vector<double> >& outPixelEnergy) {
+  int32_t numRows = bgr[0].size().height;
+  int32_t numCols = bgr[0].size().width;
   // resize output if necessary
-  if (outPixelEnergy.size() != bgr[0].size().height) {
-    outPixelEnergy.resize(bgr[0].size().height);
+  if (outPixelEnergy.size() != numRows) {
+    outPixelEnergy.resize(numRows);
   }
-  if (outPixelEnergy[0].size() != bgr[0].size().width) {
-    for (int i = 0; i < bgr[0].size().height; i++) {
-      outPixelEnergy[i].resize(bgr[0].size().width);
+  if (outPixelEnergy[0].size() != numCols) {
+    for (int r = 0; r < numRows; r++) {
+      outPixelEnergy[r].resize(numCols);
     }
   }
   double computedEnergy = 0.0;
-  for (int r = 0; r < bgr[0].size().height; r++) {
-    for (int c = 0; c < bgr[0].size().width; c++) {
+  for (int r = 0; r < numRows; r++) {
+    for (int c = 0; c < numCols; c++) {
        if (this->energyAt(bgr, r, c, computedEnergy)) {
       }
       outPixelEnergy[r][c] = computedEnergy;
