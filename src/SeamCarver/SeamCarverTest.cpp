@@ -8,11 +8,11 @@ void efn(const cv::Mat& img, vector< vector<double> >& outPixelEnergy) {
 }
 
 int main() {
-  cv::Mat m(10, 15, CV_32S);
-  cout << "height = " << m.size().height << endl;
-  cout << "width  = " << m.size().width << endl;
-  m.at<int32_t>(9, 14) = -12;
-  cout << "row 9, col 14 = " << m.at<int32_t>(9, 14) << endl;
+  //cv::Mat m(10, 15, CV_32S);
+  //cout << "height = " << m.size().height << endl;
+  //cout << "width  = " << m.size().width << endl;
+  //m.at<int32_t>(9, 14) = -12;
+  //cout << "row 9, col 14 = " << m.at<int32_t>(9, 14) << endl;
 
   cv::Mat img = cv::imread("../../../images/guitar.png", CV_LOAD_IMAGE_COLOR);
   //vector<cv::Mat> bgr;
@@ -97,6 +97,5 @@ int main() {
       break;
     }
   }
-
   return 0;
 }
