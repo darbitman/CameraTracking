@@ -63,8 +63,9 @@ namespace ct {
     * @param pixelEnergy calculated pixel energy of image
     * @param marked pixels marked for seam removal
     * @param totalEnergyTo output parameter: total energy required to reach pixel at r,c
+    * @param colTo previous row's column to get to current pixel at row,col
     */
-    void calculatePathEnergy(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vector< vector<double> >& totalEnergyTo);
+    void calculatePathEnergy(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vector< vector<double> >& totalEnergyTo, vector< vector<int32_t> >& colTo);
 
     /**
      * @brief remove vertical seam from img given by column locations stored in seam
@@ -98,9 +99,6 @@ namespace ct {
      */
     void energy(const vector<cv::Mat>& bgr, vector< vector<double> >& outPixelEnergy);
 
-    void rowEnergy(int32_t r, const vector<cv::Mat>& bgr, vector< vector<double> >& outPixelEnergy);
-    
-    
     // default energy at the borders of the image
     const double MARGIN_ENERGY;
   };

@@ -181,9 +181,6 @@ bool ct::SeamCarver::findAndRemoveHorizontalSeams(int32_t numSeams, const cv::Ma
 
 
 bool ct::SeamCarver::findVerticalSeam(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeams) {
-  auto start = high_resolution_clock::now();
-  auto stop = high_resolution_clock::now();
-  auto duration = duration_cast<microseconds>(stop - start);
   if (pixelEnergy.size() == 0) {
     throw std::out_of_range("Pixel energy vector is empty\n");
   }
@@ -207,84 +204,13 @@ bool ct::SeamCarver::findVerticalSeam(const vector< vector<double> >& pixelEnerg
   colTo.resize(numRows);
 
   // resize number of columns for each row
-  start = high_resolution_clock::now();
   for (int32_t r = 0; r < numRows; r++) {
     totalEnergyTo[r].resize(numCols);
     colTo[r].resize(numCols);
   }
-  stop = high_resolution_clock::now();
-  duration = duration_cast<microseconds>(stop - start);
-  duration.count();
 
-  // initialize top row
-  start = high_resolution_clock::now();
-  for (int32_t c = 0; c < numCols; c++) {
-    // if previously marked, set its energy to +INF
-    if (marked[0][c]) {
-      totalEnergyTo[0][c] = posInf;
-    }
-    else {
-      totalEnergyTo[0][c] = pixelEnergy[0][c];
-    }
-    colTo[0][c] = -1;
-  }
-  stop = high_resolution_clock::now();
-  duration = duration_cast<microseconds>(stop - start);
-  duration.count();
+  this->calculatePathEnergy(pixelEnergy, marked, totalEnergyTo, colTo);
 
-
-  start = high_resolution_clock::now();
-  for (int32_t r = 1; r < numRows; r++) {
-    // find minimum energy path from previous row to every pixel in the current row
-    // initialize min energy to +INF
-    // initialize the previous column to -1 to set error state
-    double minEnergy = posInf;
-    int32_t minEnergyCol = -1;
-    for (int32_t c = 0; c < numCols; c++) {
-      minEnergy = posInf;
-      minEnergyCol = -1;
-
-      // save some cycles by not doing any comparisons if the current pixel has been previously marked
-      if (!marked[r][c]) {
-        // check above
-        if (!marked[r - 1][c] && totalEnergyTo[r - 1][c] < minEnergy) {
-          minEnergy = totalEnergyTo[r - 1][c];
-          minEnergyCol = c;
-        }
-
-        // check if left/above is min
-        if (c > 0) {
-          if (!marked[r - 1][c - 1] && totalEnergyTo[r - 1][c - 1] < minEnergy) {
-            minEnergy = totalEnergyTo[r - 1][c - 1];
-            minEnergyCol = c - 1;
-          }
-        }
-
-        // check if right/above is min
-        if (c < numCols - 1) {
-          if (!marked[r - 1][c + 1] && totalEnergyTo[r - 1][c + 1] < minEnergy) {
-            minEnergy = totalEnergyTo[r - 1][c + 1];
-            minEnergyCol = c + 1;
-          }
-        }
-      }
-
-      // assign cumulative energy to current pixel and save the column of the parent pixel
-      if (minEnergyCol == -1) {
-        // current pixel is unreachable from parent pixels since they are all marked
-        //   OR current pixel already marked
-        // set energy to reach current pixel to +INF
-        totalEnergyTo[r][c] = posInf;
-      }
-      else {
-        totalEnergyTo[r][c] = minEnergy + pixelEnergy[r][c];
-      }
-      colTo[r][c] = minEnergyCol;
-    }
-  }
-  stop = high_resolution_clock::now();
-  duration = duration_cast<microseconds>(stop - start);
-  duration.count();
   // find one endpoint of least cumulative energy
   // initialize total energy to +INF to perform linear search
   // will find a pixel that is in the seam of least total energy (if it exists)
@@ -341,7 +267,72 @@ void ct::SeamCarver::findHorizontalSeam(const vector< vector<double> >& pixelEne
 }
 
 
-void calculatePathEnergy(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vector< vector<double> >& totalEnergyTo) {
+void ct::SeamCarver::calculatePathEnergy(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vector< vector<double> >& totalEnergyTo, vector< vector<int32_t> >& colTo) {
+  // initialize constants to be used throughout function
+  int32_t numRows = pixelEnergy.size();
+  int32_t numCols = pixelEnergy[0].size();
+  double posInf = std::numeric_limits<double>::max();
+
+  // initialize top row
+  for (int32_t c = 0; c < numCols; c++) {
+    // if previously marked, set its energy to +INF
+    if (marked[0][c]) {
+      totalEnergyTo[0][c] = posInf;
+    }
+    else {
+      totalEnergyTo[0][c] = pixelEnergy[0][c];
+    }
+    colTo[0][c] = -1;
+  }
+
+  for (int32_t r = 1; r < numRows; r++) {
+    // find minimum energy path from previous row to every pixel in the current row
+    // initialize min energy to +INF
+    // initialize the previous column to -1 to set error state
+    double minEnergy = posInf;
+    int32_t minEnergyCol = -1;
+    for (int32_t c = 0; c < numCols; c++) {
+      minEnergy = posInf;
+      minEnergyCol = -1;
+
+      // save some cycles by not doing any comparisons if the current pixel has been previously marked
+      if (!marked[r][c]) {
+        // check above
+        if (!marked[r - 1][c] && totalEnergyTo[r - 1][c] < minEnergy) {
+          minEnergy = totalEnergyTo[r - 1][c];
+          minEnergyCol = c;
+        }
+
+        // check if left/above is min
+        if (c > 0) {
+          if (!marked[r - 1][c - 1] && totalEnergyTo[r - 1][c - 1] < minEnergy) {
+            minEnergy = totalEnergyTo[r - 1][c - 1];
+            minEnergyCol = c - 1;
+          }
+        }
+
+        // check if right/above is min
+        if (c < numCols - 1) {
+          if (!marked[r - 1][c + 1] && totalEnergyTo[r - 1][c + 1] < minEnergy) {
+            minEnergy = totalEnergyTo[r - 1][c + 1];
+            minEnergyCol = c + 1;
+          }
+        }
+      }
+
+      // assign cumulative energy to current pixel and save the column of the parent pixel
+      if (minEnergyCol == -1) {
+        // current pixel is unreachable from parent pixels since they are all marked
+        //   OR current pixel already marked
+        // set energy to reach current pixel to +INF
+        totalEnergyTo[r][c] = posInf;
+      }
+      else {
+        totalEnergyTo[r][c] = minEnergy + pixelEnergy[r][c];
+      }
+      colTo[r][c] = minEnergyCol;
+    }
+  }
 }
 
 
@@ -436,15 +427,5 @@ void ct::SeamCarver::energy(const vector<cv::Mat>& bgr, vector< vector<double> >
       }
       outPixelEnergy[r][c] = computedEnergy;
     }
-  }
-}
-
-void ct::SeamCarver::rowEnergy(int32_t r, const vector<cv::Mat>& bgr, vector< vector<double> >& outPixelEnergy) {
-  double computedEnergy = 0.0;
-  int32_t numCols = bgr[0].size().width;
-  for (int c = 0; c < numCols; c++) {
-     if (this->energyAt(bgr, r, c, computedEnergy)) {
-    }
-    outPixelEnergy[r][c] = computedEnergy;
   }
 }
