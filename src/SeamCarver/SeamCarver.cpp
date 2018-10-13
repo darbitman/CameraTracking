@@ -1,5 +1,7 @@
 #include "SeamCarver.h"
 #include <limits>
+#include <chrono>
+using namespace std::chrono;
 
 
 bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergy) {
@@ -48,13 +50,25 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
   bgr.resize(3);
 
   try {
+    auto start = high_resolution_clock::now();
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(stop - start);
     // compute energy of pixels
     if (computeEnergy == nullptr) {
       // split img into 3 channels (BLUE, GREEN, RED)
-      cv::split(outImg, bgr);
+      start = high_resolution_clock::now();
+      cv::split(outImg, bgr); // 300-400us
+      stop = high_resolution_clock::now();
+      duration = duration_cast<microseconds>(stop - start);
+      duration.count();
 
       // call built-in energy computation function
-      this->energy(bgr, pixelEnergy);
+      start = high_resolution_clock::now();
+      this->energy(bgr, pixelEnergy); // ~200-250ms
+      stop = high_resolution_clock::now();
+      duration = duration_cast<microseconds>(stop - start);
+      duration.count();
+      
     }
     else {
       // call user-defined energy computation function
@@ -62,15 +76,29 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
     }
 
     // find all vertical seams
-    for (int32_t i = 0; i < numSeams; i++) {
-      this->findVerticalSeam(pixelEnergy, marked, seams);
+    
+    for (int32_t i = 0; i < numSeams; i++) {  // ~16-17sec
+      start = high_resolution_clock::now();
+      this->findVerticalSeam(pixelEnergy, marked, seams); // 300-400ms
+      stop = high_resolution_clock::now();
+      duration = duration_cast<microseconds>(stop - start);
+      duration.count();
     }
+
     
     // remove all found seams
-    this->removeVerticalSeams(bgr, seams);
+    start = high_resolution_clock::now();
+    this->removeVerticalSeams(bgr, seams);  // ~60-70ms
+    stop = high_resolution_clock::now();
+    duration = duration_cast<microseconds>(stop - start);
+    duration.count();
 
     // combine separate channels into output image
-    cv::merge(bgr, outImg);
+    start = high_resolution_clock::now();
+    cv::merge(bgr, outImg); // ~300-400us
+    stop = high_resolution_clock::now();
+    duration = duration_cast<microseconds>(stop - start);
+    duration.count();
   }
   catch (std::out_of_range e) {
     std::cout << e.what() << std::endl;
@@ -373,7 +401,7 @@ void ct::SeamCarver::removeVerticalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams) 
 }
 
 
-void ct::SeamCarver::removeHorizontalSeam(vector<cv::Mat>& bgr, vecMinPQ& seams) {
+void ct::SeamCarver::removeHorizontalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams) {
 }
 
 

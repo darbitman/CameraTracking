@@ -1,9 +1,7 @@
 #include "SeamCarver.h"
 #include <iostream>
 
-
 using namespace std;
-
 
 void efn(const cv::Mat& img, vector< vector<double> >& outPixelEnergy) {
   cout << "Alternate energy function" << endl;
@@ -19,7 +17,10 @@ int main() {
   cv::Mat img = cv::imread("../../../images/guitar.png", CV_LOAD_IMAGE_COLOR);
   //vector<cv::Mat> bgr;
   //bgr.resize(3);
+  //auto start = high_resolution_clock::now();
   //cv::split(img, bgr);
+  //auto stop = high_resolution_clock::now();
+  //auto duration = duration_cast<microseconds>(stop - start);
 
   if (img.empty()) {
     std::cout << "Could not open or find the image" << std::endl;

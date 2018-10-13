@@ -71,7 +71,7 @@ namespace ct {
      * @param bgr image separate into 3 channels (BLUE GREEN RED)
      * @param seam row locations of which pixel to remove, where the seam index is the column
      */
-    void removeHorizontalSeam(vector<cv::Mat>& bgr, vecMinPQ& seams);
+    void removeHorizontalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams);
 
     /**
      * @brief compute energy of pixel at [r, c]
