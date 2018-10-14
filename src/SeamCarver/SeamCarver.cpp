@@ -51,15 +51,12 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
       cv::split(img, bgr); // ~300-400us
       stop = high_resolution_clock::now();
       duration = duration_cast<microseconds>(stop - start);
-      duration.count();
 
       // call built-in energy computation function
       start = high_resolution_clock::now();
-      this->energy(bgr, pixelEnergy); // ~220ms
+      this->energy(bgr, pixelEnergy); // ~165ms
       stop = high_resolution_clock::now();
       duration = duration_cast<microseconds>(stop - start);
-      duration.count();
-
     }
     else {
       // call user-defined energy computation function
@@ -71,22 +68,18 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
     this->findVerticalSeam(numSeams, pixelEnergy, marked, seams); // ~6.9s
     stop = high_resolution_clock::now();
     duration = duration_cast<microseconds>(stop - start);
-    duration.count();
-
 
     // remove all found seams
     start = high_resolution_clock::now();
     this->removeVerticalSeams(bgr, seams);  // ~65ms
     stop = high_resolution_clock::now();
     duration = duration_cast<microseconds>(stop - start);
-    duration.count();
 
     // combine separate channels into output image
     start = high_resolution_clock::now();
     cv::merge(bgr, outImg); // ~300-400us
     stop = high_resolution_clock::now();
     duration = duration_cast<microseconds>(stop - start);
-    duration.count();
   }
   catch (std::out_of_range e) {
     std::cout << e.what() << std::endl;
@@ -461,6 +454,8 @@ bool ct::SeamCarver::energyAt(const vector<cv::Mat>& bgr, int32_t r, int32_t c, 
 void ct::SeamCarver::energy(const vector<cv::Mat>& bgr, vector< vector<double> >& outPixelEnergy) {
   int32_t numRows = bgr[0].size().height;
   int32_t numCols = bgr[0].size().width;
+  int32_t bottomRow = numRows - 1;
+  int32_t rightCol = numCols - 1;
   // resize output if necessary
   if (outPixelEnergy.size() != numRows) {
     outPixelEnergy.resize(numRows);
@@ -471,11 +466,87 @@ void ct::SeamCarver::energy(const vector<cv::Mat>& bgr, vector< vector<double> >
     }
   }
   double computedEnergy = 0.0;
+  int32_t numOddCols = numCols / 2;
+  int32_t numEvenCols = numCols - numOddCols;
+
+  // locals used in energy function
+  double Rx2, Rx1, Gx2, Gx1, Bx2, Bx1;
+  double deltaSquareX, deltaSquareY;
+  int32_t c;
   for (int32_t r = 0; r < numRows; r++) {
-    for (int32_t c = 0; c < numCols; c++) {
-      if (this->energyAt(bgr, r, c, computedEnergy)) {
+    /***** ODD COLUMNS *****/
+    // init starting column
+    c = 1;
+    // initialize color values to the left of current pixel (c = 1)
+    Rx1 = bgr[2].at<uchar>(r, c - 1);
+    Gx1 = bgr[1].at<uchar>(r, c - 1);
+    Bx1 = bgr[0].at<uchar>(r, c - 1);
+    for (int32_t n = 0; n < numOddCols; n++) {
+      // return energy for border pixels
+      if (r == 0 || c == 0 || r == bottomRow || c == rightCol) {
+        outPixelEnergy[r][c] = this->MARGIN_ENERGY;
       }
-      outPixelEnergy[r][c] = computedEnergy;
+      else {
+        // compute energy for every pixel by computing gradient of colors
+        // DeltaX = DeltaRx^2 + DeltaGx^2 + DeltaBx^2
+        // DeltaY = DeltaRy^2 + DeltaGy^2 + DeltaBy^2
+        // energy = sqrt(DeltaX + DeltaY)
+
+        // get color values of the pixel to the right
+        Rx2 = bgr[2].at<uchar>(r, c + 1);
+        Gx2 = bgr[1].at<uchar>(r, c + 1);
+        Bx2 = bgr[0].at<uchar>(r, c + 1);
+        deltaSquareX = (pow(Rx2 - Rx1, 2.0) +  // DeltaRx^2
+                        pow(Gx2 - Gx1, 2.0) +  // DeltaGx^2
+                        pow(Bx2 - Bx1, 2.0));  // DeltaBx^2
+        deltaSquareY = (pow(bgr[2].at<uchar>(r + 1, c) - bgr[2].at<uchar>(r - 1, c), 2.0) +  // DeltaRy^2
+                        pow(bgr[1].at<uchar>(r + 1, c) - bgr[1].at<uchar>(r - 1, c), 2.0) +  // DeltaGy^2
+                        pow(bgr[0].at<uchar>(r + 1, c) - bgr[0].at<uchar>(r - 1, c), 2.0));  // DeltaBy^2
+        outPixelEnergy[r][c] = sqrt(deltaSquareX + deltaSquareY);
+
+        // shift color values to the left
+        Rx1 = Rx2;
+        Gx1 = Gx2;
+        Bx1 = Bx2;
+      }
+      c = c + 2;
+    }
+
+    /***** EVEN COLUMNS *****/
+    // init starting column
+    c = 0;
+    // initialize color values to the right of current column (c = 0)
+    Rx2 = bgr[2].at<uchar>(r, c + 1);
+    Gx2 = bgr[1].at<uchar>(r, c + 1);
+    Bx2 = bgr[0].at<uchar>(r, c + 1);
+    for (int32_t n = 0; n < numEvenCols; n++) {
+      // return energy for border pixels
+      if (r == 0 || c == 0 || r == bottomRow || c == rightCol) {
+        outPixelEnergy[r][c] = this->MARGIN_ENERGY;
+      }
+      else {
+        // compute energy for every pixel by computing gradient of colors
+        // DeltaX = DeltaRx^2 + DeltaGx^2 + DeltaBx^2
+        // DeltaY = DeltaRy^2 + DeltaGy^2 + DeltaBy^2
+        // energy = sqrt(DeltaX + DeltaY)
+
+        // move color values to the left
+        Rx1 = Rx2;
+        Gx1 = Gx2;
+        Bx1 = Bx2;
+        // get new color values to the right
+        Rx2 = bgr[2].at<uchar>(r, c + 1);
+        Gx2 = bgr[1].at<uchar>(r, c + 1);
+        Bx2 = bgr[0].at<uchar>(r, c + 1);
+        deltaSquareX = (pow(Rx2 - Rx1, 2.0) +  // DeltaRx^2
+                        pow(Gx2 - Gx1, 2.0) +  // DeltaGx^2
+                        pow(Bx2 - Bx1, 2.0));  // DeltaBx^2
+        deltaSquareY = (pow(bgr[2].at<uchar>(r + 1, c) - bgr[2].at<uchar>(r - 1, c), 2.0) +  // DeltaRy^2
+                        pow(bgr[1].at<uchar>(r + 1, c) - bgr[1].at<uchar>(r - 1, c), 2.0) +  // DeltaGy^2
+                        pow(bgr[0].at<uchar>(r + 1, c) - bgr[0].at<uchar>(r - 1, c), 2.0));  // DeltaBy^2
+        outPixelEnergy[r][c] = sqrt(deltaSquareX + deltaSquareY);
+      }
+      c = c + 2;
     }
   }
 }
