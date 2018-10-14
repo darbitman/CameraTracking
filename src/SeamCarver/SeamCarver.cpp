@@ -308,23 +308,21 @@ void ct::SeamCarver::calculateVerticalPathEnergy(const vector< vector<double> >&
   // left/above = directly above
   // directly above = right/above
   // right/above = access new memory
-  double upLeft = posInf;
-  double up = posInf;
-  double upRight = posInf;
+  double energyUpLeft = posInf;
+  double energyUp = posInf;
+  double energyUpRight = posInf;
 
   bool markedUpLeft = false;
   bool markedUp = false;
   bool markedUpRight = false;
 
-  // initialize min energy to +INF
-  // initialize the previous column to -1 to set error state
   double minEnergy = posInf;
   int32_t minEnergyCol = -1;
 
   for (int32_t r = 1; r < numRows; r++) {
-    upLeft = posInf;
-    up = totalEnergyTo[r - 1][0];
-    upRight = numCols > 2 ? totalEnergyTo[r - 1][1] : posInf;
+    energyUpLeft = posInf;
+    energyUp = totalEnergyTo[r - 1][0];
+    energyUpRight = numCols > 2 ? totalEnergyTo[r - 1][1] : posInf;
 
     markedUpLeft = true;
     markedUp = marked[r - 1][0];
@@ -332,20 +330,22 @@ void ct::SeamCarver::calculateVerticalPathEnergy(const vector< vector<double> >&
 
     // find minimum energy path from previous row to every pixel in the current row
     for (int32_t c = 0; c < numCols; c++) {
+      // initialize min energy to +INF and initialize the previous column to -1
+      //   to set error state
       minEnergy = posInf;
       minEnergyCol = -1;
 
       // save some cycles by not doing any comparisons if the current pixel has been previously marked
       if (!marked[r][c]) {
         // check above
-        if (!markedUp && up < minEnergy) {
+        if (!markedUp && energyUp < minEnergy) {
           minEnergy = totalEnergyTo[r - 1][c];
           minEnergyCol = c;
         }
 
         // check if left/above is min
         if (c > 0) {
-          if (!markedUpLeft && upLeft < minEnergy) {
+          if (!markedUpLeft && energyUpLeft < minEnergy) {
             minEnergy = totalEnergyTo[r - 1][c - 1];
             minEnergyCol = c - 1;
           }
@@ -353,7 +353,7 @@ void ct::SeamCarver::calculateVerticalPathEnergy(const vector< vector<double> >&
 
         // check if right/above is min
         if (c < numCols - 1) {
-          if (!markedUpRight && upRight < minEnergy) {
+          if (!markedUpRight && energyUpRight < minEnergy) {
             minEnergy = totalEnergyTo[r - 1][c + 1];
             minEnergyCol = c + 1;
           }
@@ -361,12 +361,12 @@ void ct::SeamCarver::calculateVerticalPathEnergy(const vector< vector<double> >&
       }
 
       // shift energy to the left and get new energy
-      upLeft = up;
+      energyUpLeft = energyUp;
       markedUpLeft = markedUp;
-      up = upRight;
+      energyUp = energyUpRight;
       markedUp = markedUpRight;
       if (c < numCols - 1) {
-        upRight = totalEnergyTo[r - 1][c + 1];
+        energyUpRight = totalEnergyTo[r - 1][c + 1];
         markedUpRight = marked[r - 1][c + 1];
       }
 
