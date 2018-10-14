@@ -177,7 +177,6 @@ bool ct::SeamCarver::findAndRemoveHorizontalSeams(int32_t numSeams, const cv::Ma
 
 
 bool ct::SeamCarver::findVerticalSeam(int32_t numSeams, const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeams) {
-  uint32_t counter = 0;
   if (pixelEnergy.size() == 0) {
     throw std::out_of_range("Pixel energy vector is empty\n");
   }
@@ -208,7 +207,10 @@ bool ct::SeamCarver::findVerticalSeam(int32_t numSeams, const vector< vector<dou
   }
 
   // initial path calculation
-  this->calculateVerticalPathEnergy(pixelEnergy, marked, totalEnergyTo, colTo);
+  auto start = high_resolution_clock::now();
+  this->calculateVerticalPathEnergy(pixelEnergy, marked, totalEnergyTo, colTo); // ~320-335us
+  auto stop = high_resolution_clock::now();
+  auto duration = duration_cast<microseconds>(stop - start);
 
   // temporary seam to verify that there are no previously marked pixels in this seam
   // otherwise the cumulative energies need to be recalculated
@@ -269,11 +271,10 @@ bool ct::SeamCarver::findVerticalSeam(int32_t numSeams, const vector< vector<dou
     continue;
 
     recalculateVerticalEnergy: {
-    // decrement seam number iterator to restart seam path discovery
+    // decrement seam number iterator to restart seam path discovery for this seam
     // need to recalculate the cumulative energy
     n--;
     this->calculateVerticalPathEnergy(pixelEnergy, marked, totalEnergyTo, colTo);
-    counter++;
     }
   }
   return true;
@@ -301,12 +302,27 @@ void ct::SeamCarver::calculateVerticalPathEnergy(const vector< vector<double> >&
     colTo[0][c] = -1;
   }
 
+  // cache the total energy to the pixels up/left, directly above, and up/right
+  //   instead of accessing memory for the same pixels
+  // all that needs to be done, is shifting energies to the left and accessing one memory location
+  // left/above = directly above
+  // directly above = right/above
+  // right/above = access new memory
+  double upLeft = posInf;
+  double up = posInf;
+  double upRight = posInf;
+
+  // initialize min energy to +INF
+  // initialize the previous column to -1 to set error state
+  double minEnergy = posInf;
+  int32_t minEnergyCol = -1;
+
   for (int32_t r = 1; r < numRows; r++) {
+    upLeft = posInf;
+    up = totalEnergyTo[r - 1][0];
+    upRight = numCols > 2 ? totalEnergyTo[r - 1][1] : posInf;
+
     // find minimum energy path from previous row to every pixel in the current row
-    // initialize min energy to +INF
-    // initialize the previous column to -1 to set error state
-    double minEnergy = posInf;
-    int32_t minEnergyCol = -1;
     for (int32_t c = 0; c < numCols; c++) {
       minEnergy = posInf;
       minEnergyCol = -1;
@@ -314,14 +330,14 @@ void ct::SeamCarver::calculateVerticalPathEnergy(const vector< vector<double> >&
       // save some cycles by not doing any comparisons if the current pixel has been previously marked
       if (!marked[r][c]) {
         // check above
-        if (!marked[r - 1][c] && totalEnergyTo[r - 1][c] < minEnergy) {
+        if (!marked[r - 1][c] && up < minEnergy) {
           minEnergy = totalEnergyTo[r - 1][c];
           minEnergyCol = c;
         }
 
         // check if left/above is min
         if (c > 0) {
-          if (!marked[r - 1][c - 1] && totalEnergyTo[r - 1][c - 1] < minEnergy) {
+          if (!marked[r - 1][c - 1] && upLeft < minEnergy) {
             minEnergy = totalEnergyTo[r - 1][c - 1];
             minEnergyCol = c - 1;
           }
@@ -329,11 +345,18 @@ void ct::SeamCarver::calculateVerticalPathEnergy(const vector< vector<double> >&
 
         // check if right/above is min
         if (c < numCols - 1) {
-          if (!marked[r - 1][c + 1] && totalEnergyTo[r - 1][c + 1] < minEnergy) {
+          if (!marked[r - 1][c + 1] && upRight < minEnergy) {
             minEnergy = totalEnergyTo[r - 1][c + 1];
             minEnergyCol = c + 1;
           }
         }
+      }
+      
+      // shift energy to the left and get new energy
+      upLeft = up;
+      up = upRight;
+      if (c < numCols - 1) {
+        upRight = totalEnergyTo[r - 1][c + 1];
       }
 
       // assign cumulative energy to current pixel and save the column of the parent pixel
