@@ -83,19 +83,9 @@ namespace ct {
     void removeHorizontalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams);
 
     /**
-     * @brief compute energy of pixel at [r, c]
-     * @param bgr image separated into 3 channels (BLUE GREEN RED)
-     * @param r pixel row
-     * @param c pixel column
-     * @param outEnergy output paramter
-     * @return bool indicates whether computation was successful
-     */
-    bool energyAt(const vector<cv::Mat>& bgr, int32_t r, int32_t c, double& outEnergy);
-
-    /**
      * @brief compute energy for every pixel of image
      * @param bgr image separate into 3 channels (BLUE GREEN RED)
-     * @param outPixelEnergy output parameter
+     * @param outPixelEnergy output parameter that stores the energy for every pixel
      */
     void energy(const vector<cv::Mat>& bgr, vector< vector<double> >& outPixelEnergy);
 

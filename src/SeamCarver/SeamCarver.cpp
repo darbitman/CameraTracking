@@ -421,34 +421,7 @@ void ct::SeamCarver::removeVerticalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams) 
 }
 
 
-void ct::SeamCarver::removeHorizontalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams) {
-}
-
-
-bool ct::SeamCarver::energyAt(const vector<cv::Mat>& bgr, int32_t r, int32_t c, double& outEnergy) {
-  // if r or c out of bounds, then return false
-  if (r < 0 || c < 0 || r > bgr[0].size().height - 1 || c > bgr[0].size().width - 1) {
-    return false;
-  }
-  // return energy for border pixels
-  if (r == 0 || c == 0 || r == bgr[0].size().height - 1 || c == bgr[0].size().width - 1) {
-    outEnergy = this->MARGIN_ENERGY;
-  }
-  else {
-    // compute energy for every pixel by computing gradient of colors
-    // DeltaX = DeltaRx^2 + DeltaGx^2 + DeltaBx^2
-    // DeltaY = DeltaRy^2 + DeltaGy^2 + DeltaBy^2
-    // energy = sqrt(DeltaX + DeltaY)
-    double deltaSquareX = (pow(bgr[2].at<uchar>(r, c + 1) - bgr[2].at<uchar>(r, c - 1), 2.0) +  // DeltaRx^2
-                           pow(bgr[1].at<uchar>(r, c + 1) - bgr[1].at<uchar>(r, c - 1), 2.0) +  // DeltaGx^2
-                           pow(bgr[0].at<uchar>(r, c + 1) - bgr[0].at<uchar>(r, c - 1), 2.0));  // DeltaBx^2
-    double deltaSquareY = (pow(bgr[2].at<uchar>(r + 1, c) - bgr[2].at<uchar>(r - 1, c), 2.0) +  // DeltaRy^2
-                           pow(bgr[1].at<uchar>(r + 1, c) - bgr[1].at<uchar>(r - 1, c), 2.0) +  // DeltaGy^2
-                           pow(bgr[0].at<uchar>(r + 1, c) - bgr[0].at<uchar>(r - 1, c), 2.0));  // DeltaBy^2
-    outEnergy = sqrt(deltaSquareX + deltaSquareY);
-  }
-  return true;
-}
+void ct::SeamCarver::removeHorizontalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams) {}
 
 
 void ct::SeamCarver::energy(const vector<cv::Mat>& bgr, vector< vector<double> >& outPixelEnergy) {
