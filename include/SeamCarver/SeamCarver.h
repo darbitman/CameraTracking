@@ -2,29 +2,32 @@
 #include <opencv2/opencv.hpp>
 #include <stdint.h>
 #include <iostream>
+#include <queue>
 
 
 using std::vector;
+using std::priority_queue;
 
 
 namespace ct {
   typedef void(*energyFunc)(const cv::Mat& img, vector< vector<double> >& outPixelEnergy);
+  typedef vector< priority_queue<int32_t, vector<int32_t>, std::greater<int32_t> > > vecMinPQ;
 
   class SeamCarver {
   public:
-    SeamCarver(double margin_energy = 624.6198844097) : MARGIN_ENERGY(margin_energy) {}
+    SeamCarver(double margin_energy = 624.6198844097104) : MARGIN_ENERGY(margin_energy) {}
 
     ~SeamCarver() {}
 
     /**
-     * @brief remove vertical seams
+     * @brief find and remove vertical seams
      * @param numSeams number of vertical seams to remove
      * @param img input image
      * @param outImg output paramter
      * @param computeEnergy pointer to a user-defined energy function. If one is not provided, internal one will be used
      * @return bool indicates whether seam removal was successful or not
      */
-    bool removeVerticalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergy = nullptr);
+    bool findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergyFn = nullptr);
 
     /**
      * @brief remove horizontal seams
@@ -34,36 +37,50 @@ namespace ct {
      * @param computeEnergy pointer to a user-defined energy function. If one is not provided, internal one will be used
      * @return bool indicates whether seam removal was successful or not
      */
-    bool removeHorizontalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergy = nullptr);
+    bool findAndRemoveHorizontalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergy = nullptr);
 
   private:
     /**
      * @brief find vertical seam to remove
      * @param pixelEnergy calculated pixel energy of image
-     * @param outSeam output paramter
+     * @param marked previously marked pixels for seam removal
+     * @param outSeams output parameter (vector of priority queues)
+     * @return bool indicates success
      */
-    void findVerticalSeam(const vector< vector<double> >& pixelEnergy, vector<int>& outSeam);
+    bool findVerticalSeam(int32_t numSeams, const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeams);
 
     /**
      * @brief find horizontal seam to remove
      * @param pixelEnergy calculated pixel energy of image
-     * @param outSeam output paramter
+     * @param marked previously marked pixels for seam removal
+     * @param outSeams output parameter (vector of priority queues)
+     * @return bool indicates success
      */
-    void findHorizontalSeam(const vector< vector<double> >& pixelEnergy, vector<int>& outSeam);
+    void findHorizontalSeam(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeams);
+
+    /**
+    * @brief calculates the energy required to reach bottom row
+    * @param pixelEnergy calculated pixel energy of image
+    * @param marked pixels marked for seam removal
+    * @param totalEnergyTo output parameter: total energy required to reach pixel at r,c
+    * @param colTo previous row's column to get to current pixel at row,col
+    */
+    void calculateVerticalPathEnergy(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vector< vector<double> >& totalEnergyTo, vector< vector<int32_t> >& colTo);
 
     /**
      * @brief remove vertical seam from img given by column locations stored in seam
      * @param bgr image separate into 3 channels (BLUE GREEN RED)
-     * @param seam column locations of which pixel to remove, where the seam index is the row
+     * @param seams vector of priority queues that hold the columns for the pixels to remove
+     *              for each row, where the index into the vector is the row number
      */
-    void removeVerticalSeam(vector<cv::Mat>& bgr, const vector<int>& seam);
+    void removeVerticalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams);
 
     /**
      * @brief remove horizontal seam from img given by row locations stored in seam
      * @param bgr image separate into 3 channels (BLUE GREEN RED)
      * @param seam row locations of which pixel to remove, where the seam index is the column
      */
-    void removeHorizontalSeam(vector<cv::Mat>& bgr, const vector<int>& seam);
+    void removeHorizontalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams);
 
     /**
      * @brief compute energy of pixel at [r, c]
@@ -85,5 +102,7 @@ namespace ct {
     // default energy at the borders of the image
     const double MARGIN_ENERGY;
   };
+
+  
 
 }
