@@ -91,6 +91,9 @@ namespace ct {
 
     // default energy at the borders of the image
     const double MARGIN_ENERGY;
+
+    int32_t numRows;
+    int32_t numCols;
   };
 
   
