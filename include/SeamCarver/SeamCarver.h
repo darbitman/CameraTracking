@@ -47,7 +47,7 @@ namespace ct {
      * @param outSeams output parameter (vector of priority queues)
      * @return bool indicates success
      */
-    bool findVerticalSeam(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeams);
+    bool findVerticalSeam(int32_t numSeams, const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeams);
 
     /**
      * @brief find horizontal seam to remove
@@ -65,7 +65,7 @@ namespace ct {
     * @param totalEnergyTo output parameter: total energy required to reach pixel at r,c
     * @param colTo previous row's column to get to current pixel at row,col
     */
-    void calculatePathEnergy(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vector< vector<double> >& totalEnergyTo, vector< vector<int32_t> >& colTo);
+    void calculateVerticalPathEnergy(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vector< vector<double> >& totalEnergyTo, vector< vector<int32_t> >& colTo);
 
     /**
      * @brief remove vertical seam from img given by column locations stored in seam
