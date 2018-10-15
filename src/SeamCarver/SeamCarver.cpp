@@ -11,8 +11,8 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
     return false;
   }
 
-  numRows = img.size().height;
-  numCols = img.size().width;
+  this->numRows = img.size().height;
+  this->numCols = img.size().width;
 
   /*** DECLARE VECTORS THAT WILL BE USED THROUGHOUT THE SEAM REMOVAL PROCESS ***/
   // output of the function to compute energy
@@ -135,7 +135,7 @@ bool ct::SeamCarver::findVerticalSeam(int32_t numSeams, const vector< vector<dou
   double minTotalEnergy = posInf;
   int32_t minTotalEnergyCol = -1;
 
-  /*** RUN numSeams SEAM DISCOVERY ***/
+  /*** RUN SEAM DISCOVERY ***/
   for (int32_t n = 0; n < numSeams; n++) {
     // find least cumulative energy column in bottom row
     // initialize total energy to +INF and run linear search for a pixel of least cumulative energy (if one exists)
