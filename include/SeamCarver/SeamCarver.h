@@ -47,7 +47,7 @@ namespace ct {
      * @param outSeams output parameter (vector of priority queues)
      * @return bool indicates success
      */
-    bool findVerticalSeam(int32_t numSeams, const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeams);
+    bool findVerticalSeams(int32_t numSeams, vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeams);
 
     /**
      * @brief find horizontal seam to remove
@@ -56,7 +56,7 @@ namespace ct {
      * @param outSeams output parameter (vector of priority queues)
      * @return bool indicates success
      */
-    void findHorizontalSeam(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeams);
+    void findHorizontalSeams(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeams);
 
     /**
     * @brief calculates the energy required to reach bottom row
@@ -74,6 +74,21 @@ namespace ct {
      *              for each row, where the index into the vector is the row number
      */
     void removeVerticalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams);
+    
+    /**
+     * @brief helper function to mark where the seams are
+     * @param bgr output parameter in which seams will be marked
+     * @param seams vector of priority queues that hold the columns for the pixels to remove
+     *              for each row, where the index into the vector is the row number
+     */
+    void markVerticalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams);
+
+    /**
+     * @brief helper function to mark where cumulative energy is marked as +INF
+     * @param bgr output parameter in which seams will be marked
+     * @param pixelEnergy calculated pixel energy of image
+     */
+    void markInfEnergy(vector<cv::Mat>& bgr, vector< vector<double> >& pixelEnergy);
 
     /**
      * @brief remove horizontal seam from img given by row locations stored in seam

@@ -6,13 +6,13 @@ using namespace std::chrono;
 using std::thread;
 
 bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergyFn) {
-  // check if removing more seams than columns available
-  if (numSeams > img.size().width) {
-    return false;
-  }
-
   this->numRows = img.size().height;
   this->numCols = img.size().width;
+
+  // check if removing more seams than columns available
+  if (numSeams > numCols) {
+    return false;
+  }
 
   /*** DECLARE VECTORS THAT WILL BE USED THROUGHOUT THE SEAM REMOVAL PROCESS ***/
   // output of the function to compute energy
@@ -65,12 +65,13 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
 
     // find all vertical seams
     start = high_resolution_clock::now();
-    this->findVerticalSeam(numSeams, pixelEnergy, marked, seams); // ~6.9s
+    this->findVerticalSeams(numSeams, pixelEnergy, marked, seams); // ~1.2s
     stop = high_resolution_clock::now();
     duration = duration_cast<microseconds>(stop - start);
 
     // remove all found seams
     start = high_resolution_clock::now();
+    //this->markVerticalSeams(bgr, seams);
     this->removeVerticalSeams(bgr, seams);  // ~65ms
     stop = high_resolution_clock::now();
     duration = duration_cast<microseconds>(stop - start);
@@ -81,8 +82,11 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
     stop = high_resolution_clock::now();
     duration = duration_cast<microseconds>(stop - start);
   }
-  catch (std::out_of_range e) {
+  catch (std::exception e) {
     std::cout << e.what() << std::endl;
+    //this->markVerticalSeams(bgr, seams);
+    //this->markInfEnergy(bgr, pixelEnergy);
+    //cv::merge(bgr, outImg);
     return false;
   }
 
@@ -95,7 +99,7 @@ bool ct::SeamCarver::findAndRemoveHorizontalSeams(int32_t numSeams, const cv::Ma
 }
 
 
-bool ct::SeamCarver::findVerticalSeam(int32_t numSeams, const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeams) {
+bool ct::SeamCarver::findVerticalSeams(int32_t numSeams, vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeams) {
   if (pixelEnergy.size() == 0) {
     throw std::out_of_range("Pixel energy vector is empty\n");
   }
@@ -103,6 +107,8 @@ bool ct::SeamCarver::findVerticalSeam(int32_t numSeams, const vector< vector<dou
   if (outSeams.size() != pixelEnergy.size()) {
     throw std::out_of_range("outSeams does not have enough rows\n");
   }
+
+  int32_t count = 0;
 
   // initialize constants to be used throughout function
   int32_t bottomRow = numRows - 1;
@@ -148,9 +154,10 @@ bool ct::SeamCarver::findVerticalSeam(int32_t numSeams, const vector< vector<dou
       }
     }
 
-    // just as a precaution if for some reason all pixels in bottom row have been marked
+    // all pixels in bottom row are unreachable due to +INF cumulative energy to all of them
+    // therefore need to recalculate cumulative energies
     if (minTotalEnergyCol == -1) {
-      return false;
+      goto recalculateVerticalEnergy;
     }
 
     // save last column as part of seam
@@ -162,10 +169,14 @@ bool ct::SeamCarver::findVerticalSeam(int32_t numSeams, const vector< vector<dou
       // using the below pixel's row and column, extract the column of the pixel in the current row
       currentCol = colTo[r + 1][col];
 
-      // check if path energies need to be recalculated since the path has been marked by another path
+      // check if another path of least cumulative energy can be found without recalculating energies
       if (marked[r][currentCol]) {
-        // break inner loop, recalculate energy path and restart finding seam number n
-        goto recalculateVerticalEnergy;
+        // mark the starting pixel in bottom row as having +INF cumulative energy so it will not be chosen again
+        totalEnergyTo[bottomRow][minTotalEnergyCol] = posInf;
+        // decrement seam number iterator since this seam was invalid
+        n--;
+        // restart seam finding loop
+        goto continueSeamFindingLoop;
       }
 
       // save the column of the pixel in the current row
@@ -182,20 +193,25 @@ bool ct::SeamCarver::findVerticalSeam(int32_t numSeams, const vector< vector<dou
       marked[r][col] = true;
     }
 
-    continue;
+    continueSeamFindingLoop: {
+      continue;
+    }
 
     recalculateVerticalEnergy: {
-    // decrement seam number iterator to restart seam path discovery for this seam
-    // need to recalculate the cumulative energy
-    n--;
-    this->calculateVerticalPathEnergy(pixelEnergy, marked, totalEnergyTo, colTo);
+      // decrement seam number iterator since this seam was invalid
+      // need to recalculate the cumulative energy
+      n--;
+      count++;
+      this->calculateVerticalPathEnergy(pixelEnergy, marked, totalEnergyTo, colTo);
+      std::cout << "recalculated seam: " << n + 1 << std::endl;
     }
   }
+  std::cout << "recalculated total times: " << count << std::endl;
   return true;
 }
 
 
-void ct::SeamCarver::findHorizontalSeam(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeams) {}
+void ct::SeamCarver::findHorizontalSeams(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeams) {}
 
 
 void ct::SeamCarver::calculateVerticalPathEnergy(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vector< vector<double> >& totalEnergyTo, vector< vector<int32_t> >& colTo) {
@@ -209,7 +225,7 @@ void ct::SeamCarver::calculateVerticalPathEnergy(const vector< vector<double> >&
       totalEnergyTo[0][c] = posInf;
     }
     else {
-      totalEnergyTo[0][c] = pixelEnergy[0][c];
+      totalEnergyTo[0][c] = this->MARGIN_ENERGY;
     }
     colTo[0][c] = -1;
   }
@@ -218,8 +234,8 @@ void ct::SeamCarver::calculateVerticalPathEnergy(const vector< vector<double> >&
   //   instead of accessing memory for the same pixels
   // shift energy values to the left and access memory only once
   // SHIFT OPERATION:
-  //   left/above = directly above
-  //   directly above = right/above
+  //   left/above <== directly above
+  //   directly above <== right/above
   //   right/above = access new memory
   double energyUpLeft = posInf;
   double energyUp = posInf;
@@ -235,11 +251,11 @@ void ct::SeamCarver::calculateVerticalPathEnergy(const vector< vector<double> >&
   for (int32_t r = 1; r < numRows; r++) {
     energyUpLeft = posInf;
     energyUp = totalEnergyTo[r - 1][0];
-    energyUpRight = numCols > 2 ? totalEnergyTo[r - 1][1] : posInf;
+    energyUpRight = numCols > 1 ? totalEnergyTo[r - 1][1] : posInf;
 
     markedUpLeft = true;
     markedUp = marked[r - 1][0];
-    markedUpRight = numCols > 2 ? marked[r - 1][1] : true;
+    markedUpRight = numCols > 1 ? marked[r - 1][1] : true;
 
     // find minimum energy path from previous row to every pixel in the current row
     for (int32_t c = 0; c < numCols; c++) {
@@ -256,6 +272,14 @@ void ct::SeamCarver::calculateVerticalPathEnergy(const vector< vector<double> >&
           minEnergyCol = c;
         }
 
+        // check if right/above is min
+        if (c < numCols - 1) {
+          if (!markedUpRight && energyUpRight < minEnergy) {
+            minEnergy = totalEnergyTo[r - 1][c + 1];
+            minEnergyCol = c + 1;
+          }
+        }
+
         // check if left/above is min
         if (c > 0) {
           if (!markedUpLeft && energyUpLeft < minEnergy) {
@@ -264,13 +288,7 @@ void ct::SeamCarver::calculateVerticalPathEnergy(const vector< vector<double> >&
           }
         }
 
-        // check if right/above is min
-        if (c < numCols - 1) {
-          if (!markedUpRight && energyUpRight < minEnergy) {
-            minEnergy = totalEnergyTo[r - 1][c + 1];
-            minEnergyCol = c + 1;
-          }
-        }
+
       }
 
       // shift energy to the left and get new energy
@@ -325,7 +343,7 @@ void ct::SeamCarver::removeVerticalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams) 
       //   until the right end point which is either the last column or the next column to remove
       //   whichever comes first
       for (int c = colToRemove + 1; c < rightColBorder; c++) {
-        for (int j = 0; j < 3; j++) {
+        for (int32_t j = 0; j < 3; j++) {
           bgr[j].at<uchar>(r, c - numSeamsRemoved) = bgr[j].at<uchar>(r, c);
         }
       }
@@ -335,6 +353,34 @@ void ct::SeamCarver::removeVerticalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams) 
   /*** SHRINK IMAGE ***/
   for (int i = 0; i < 3; i++) {
     bgr[i] = bgr[i].colRange(0, bgr[i].cols - numSeamsRemoved);
+  }
+}
+
+
+void ct::SeamCarver::markVerticalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams) {
+  for (int32_t r = 0; r < numRows; r++) {
+    int32_t colToRemove = 0;
+    while (seams[r].size()) {
+      colToRemove = seams[r].top();
+      seams[r].pop();
+      for (int32_t j = 0; j < 3; j++) {
+        bgr[j].at<uchar>(r, colToRemove) = 0;
+      }
+    }
+  }
+}
+
+
+void ct::SeamCarver::markInfEnergy(vector<cv::Mat>& bgr, vector< vector<double> >& pixelEnergy) {
+  double posInf = std::numeric_limits<double>::max();
+  for (int32_t r = 0; r < numRows; r++) {
+    for (int32_t c = 0; c < numCols; c++) {
+      if (pixelEnergy[r][c] == posInf) {
+        for (int32_t j = 0; j < 3; j++) {
+          bgr[j].at<uchar>(r, c) = 0;
+        }
+      }
+    }
   }
 }
 
