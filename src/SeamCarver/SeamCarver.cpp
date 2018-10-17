@@ -157,7 +157,13 @@ bool ct::SeamCarver::findVerticalSeams(int32_t numSeams, vector< vector<double> 
     // all pixels in bottom row are unreachable due to +INF cumulative energy to all of them
     // therefore need to recalculate cumulative energies
     if (minTotalEnergyCol == -1) {
-      goto recalculateVerticalEnergy;
+      // decrement seam number iterator since this seam was invalid
+      // need to recalculate the cumulative energy
+      n--;
+      count++;
+      this->calculateVerticalPathEnergy(pixelEnergy, marked, totalEnergyTo, colTo);
+      std::cout << "recalculated seam: " << n + 1 << std::endl;
+      goto continueSeamFindingLoop;
     }
 
     // save last column as part of seam
@@ -195,15 +201,6 @@ bool ct::SeamCarver::findVerticalSeams(int32_t numSeams, vector< vector<double> 
 
     continueSeamFindingLoop: {
       continue;
-    }
-
-    recalculateVerticalEnergy: {
-      // decrement seam number iterator since this seam was invalid
-      // need to recalculate the cumulative energy
-      n--;
-      count++;
-      this->calculateVerticalPathEnergy(pixelEnergy, marked, totalEnergyTo, colTo);
-      std::cout << "recalculated seam: " << n + 1 << std::endl;
     }
   }
   std::cout << "recalculated total times: " << count << std::endl;
