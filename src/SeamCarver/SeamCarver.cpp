@@ -284,8 +284,6 @@ void ct::SeamCarver::calculateVerticalPathEnergy(const vector< vector<double> >&
             minEnergyCol = c - 1;
           }
         }
-
-
       }
 
       // shift energy to the left and get new energy
