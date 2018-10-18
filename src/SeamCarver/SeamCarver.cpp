@@ -34,6 +34,7 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
   marked.resize(numRows);
   for (int32_t r = 0; r < numRows; r++) {
     marked[r].resize(numCols);
+    seams[r].allocate(numSeams);
   }
 
   // vector to store the image's channels separately
@@ -41,6 +42,13 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
   bgr.resize(3);
 
   try {
+    // allocate min-oriented priority queue for each row to hold numSeams elements
+    for (int32_t r = 0; r < numRows; r++) {
+      if (!seams[r].allocate(numSeams)) {
+        throw std::exception("Could not allocate memory for min oriented priority queue");
+      }
+    }
+
     auto start = high_resolution_clock::now();
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(stop - start);
@@ -54,7 +62,7 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
 
       // call built-in energy computation function
       start = high_resolution_clock::now();
-      this->energy(bgr, pixelEnergy); // ~165ms
+      this->energy(bgr, pixelEnergy); // ~130ms
       stop = high_resolution_clock::now();
       duration = duration_cast<microseconds>(stop - start);
     }
@@ -329,10 +337,10 @@ void ct::SeamCarver::removeVerticalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams) 
     while (seams[r].size()) {
       numSeamsRemoved++;
       // column location of pixel to remove in row r
-      colToRemove = seams[r].top();
-      seams[r].pop();
+      colToRemove = seams[r].deleteMin();
+      //seams[r].pop();
       // mark right endpoint/next pixel column
-      int32_t rightColBorder = (seams[r].empty() ? numCols : seams[r].top());
+      int32_t rightColBorder = (seams[r].empty() ? numCols : seams[r].getMin());
       // starting at the column to the right of the column to remove move the pixel to the left
       //   by the number of seams to the left of the pixel
       //   until the right end point which is either the last column or the next column to remove
@@ -356,8 +364,8 @@ void ct::SeamCarver::markVerticalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams) {
   for (int32_t r = 0; r < numRows; r++) {
     int32_t colToRemove = 0;
     while (seams[r].size()) {
-      colToRemove = seams[r].top();
-      seams[r].pop();
+      colToRemove = seams[r].deleteMin();;
+      //seams[r].pop();
       for (int32_t j = 0; j < 3; j++) {
         bgr[j].at<uchar>(r, colToRemove) = 0;
       }

@@ -1,5 +1,4 @@
 #pragma once
-#include "ConstSizeBinaryHeap.h"
 
 
 template<typename _Tp>
@@ -12,6 +11,16 @@ public:
   explicit ConstSizeMinBinaryHeap(uint32_t capacity);
 
   /**
+   * @brief default constructor to initialize to null values
+   */
+  ConstSizeMinBinaryHeap();
+
+  /**
+   * @brief deallocate memory
+   */
+  ~ConstSizeMinBinaryHeap();
+
+  /**
    * @brief copy constructor to perform deep copy
    * @param rhs source of deep copy
    */
@@ -20,14 +29,15 @@ public:
   /**
    * @brief initialize data members and allocate memory for new heap
    * @param capacity maximum number of elements
+   * @return returns false if could not allocate memory, otherwise return true once memory is allocated
    */
-  void allocate(uint32_t capacity);
+  bool allocate(uint32_t capacity);
 
   /**
    * @brief insert new element
    * @param element element to insert
    */
-  void push(_Tp element);
+  bool push(_Tp element);
 
   /**
    * @brief delete minimum element and return it
@@ -42,36 +52,50 @@ public:
   _Tp getMin() const;
 
   /**
-   * @brief return the capacity of the queue
+   * @brief return the number of elements in the queue
    */
-  uint32_t capacity() const;
+  uint32_t size() const;
 
-  ConstSizeMinBinaryHeap();
-  ~ConstSizeMinBinaryHeap();
+  /**
+   * @brief check if the queue is empty
+   * @return bool returns true if queue is empty
+   */
+  bool empty() const;
 
 protected:
-  // promote element k if less than its parent
+  /**
+   * @brief promote element k if less than its parent
+   * @param k index of element to promote
+   */
   void swim(uint32_t k);
 
-  // demote element k if greater than its parent
+  /**
+   * @brief demote element k if greater than its parent
+   * @param k index of element to demote
+   */
   void sink(uint32_t k);
 
+  /**
+   * @brief swap 2 elements
+   * @param j index of the first element
+   * @param k index of the second element
+   */
   void exch(uint32_t j, uint32_t k);
 
+  // max number of elements
   uint32_t capacity_;
 
+  // position of last element
+  // also the number of elements (size)
   uint32_t N_;
 
+  // pointer to where the raw data will be stored
   _Tp* heap_;
 };
 
 
 template<typename _Tp>
-ConstSizeMinBinaryHeap<_Tp>::ConstSizeMinBinaryHeap(uint32_t capacity) {
-  N_ = 0;
-  capacity_ = capacity;
-  heap_ = nullptr;
-
+ConstSizeMinBinaryHeap<_Tp>::ConstSizeMinBinaryHeap(uint32_t capacity) : N_(0), capacity_(capacity), heap_(nullptr) {
   // make sure allocating a heap of at least 1 element
   if (capacity_ > 0) {
     // binary heap functions do not use element 0
@@ -96,19 +120,24 @@ ConstSizeMinBinaryHeap<_Tp>::ConstSizeMinBinaryHeap(ConstSizeMinBinaryHeap<_Tp>&
 }
 
 template<typename _Tp>
-void ConstSizeMinBinaryHeap<_Tp>::allocate(uint32_t capacity) {
+bool ConstSizeMinBinaryHeap<_Tp>::allocate(uint32_t capacity) {
   // check if heap has already been allocated to prevent memory leaks
   // make sure allocating a heap of at least 1 element
   if (heap_ == nullptr && capacity > 0) {
     N_ = 0;
     capacity_ = capacity;
     heap_ = new _Tp[capacity_ + 1];
+    return true;
+  }
+  else {
+    return false;
   }
 }
 
 
 template<typename _Tp>
-void ConstSizeMinBinaryHeap<_Tp>::push(_Tp element) {
+bool ConstSizeMinBinaryHeap<_Tp>::push(_Tp element) {
+
   // verify memory exists
   // verify that capacity is non-zero and positive
   if (heap_ != nullptr && capacity_ > 0) {
@@ -146,7 +175,14 @@ _Tp ConstSizeMinBinaryHeap<_Tp>::getMin() const {
 
 
 template<typename _Tp>
-uint32_t ConstSizeMinBinaryHeap<_Tp>::capacity() const {
+uint32_t ConstSizeMinBinaryHeap<_Tp>::size() const {
+  return this->N_;
+}
+
+
+template<typename _Tp>
+bool ConstSizeMinBinaryHeap<_Tp>::empty() const {
+  return this->N_ == 0;
 }
 
 

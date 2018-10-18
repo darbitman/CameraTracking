@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <iostream>
 #include <queue>
-
+#include "ConstSizeMinBinaryHeap.h"
 
 using std::vector;
 using std::priority_queue;
@@ -11,7 +11,8 @@ using std::priority_queue;
 
 namespace ct {
   typedef void(*energyFunc)(const cv::Mat& img, vector< vector<double> >& outPixelEnergy);
-  typedef vector< priority_queue<int32_t, vector<int32_t>, std::greater<int32_t> > > vecMinPQ;
+  //typedef vector< priority_queue<int32_t, vector<int32_t>, std::greater<int32_t> > > vecMinPQ;
+  typedef vector< ConstSizeMinBinaryHeap<int32_t> > vecMinPQ;
 
   class SeamCarver {
   public:
@@ -39,7 +40,7 @@ namespace ct {
      */
     bool findAndRemoveHorizontalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergy = nullptr);
 
-  private:
+  protected:
     /**
      * @brief find vertical seam to remove
      * @param pixelEnergy calculated pixel energy of image
