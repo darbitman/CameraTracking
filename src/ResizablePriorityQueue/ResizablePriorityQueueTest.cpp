@@ -1,4 +1,5 @@
 #include "ResizablePriorityQueue.h"
+#include "ConstSizeMinBinaryHeap.h"
 #include <iostream>
 #include <thread>
 #include <chrono>
@@ -13,7 +14,7 @@ typedef priority_queue<int32_t, vector<int32_t>, std::greater<int32_t> > MinPQ;
 
 int main() {
   MinPQ vpq;
-  int32_t entries = 100;
+  int32_t entries = 50;
   ct::ResizablePriorityQueue<int32_t, vector<int32_t>, std::greater<int32_t> > rpq(entries);
 
 
@@ -37,6 +38,14 @@ int main() {
   stop = high_resolution_clock::now();
   duration = duration_cast<microseconds>(stop - start);
 
+  start = high_resolution_clock::now();
+  ConstSizeMinBinaryHeap<int32_t> csmbp(entries);
+  
+  for (int32_t i = 0; i < entries; i++) {
+    csmbp.push(i);
+  }
+  stop = high_resolution_clock::now();
+  duration = duration_cast<microseconds>(stop - start);
 
   return 0;
 }
