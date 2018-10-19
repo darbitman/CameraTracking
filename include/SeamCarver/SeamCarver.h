@@ -102,8 +102,9 @@ namespace ct {
      * @brief compute energy for every pixel of image
      * @param bgr image separate into 3 channels (BLUE GREEN RED)
      * @param outPixelEnergy output parameter that stores the energy for every pixel
+     * @param oddColumsn indicates whether to compute energy for odd columns or for even columns
      */
-    void energy(const vector<cv::Mat>& bgr, vector< vector<double> >& outPixelEnergy);
+    void energy(const vector<cv::Mat>& bgr, vector< vector<double> >& outPixelEnergy, bool oddColumns);
 
     // default energy at the borders of the image
     const double MARGIN_ENERGY;
