@@ -65,7 +65,7 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
       std::thread t1(&ct::SeamCarver::energy, this, bgr, pixelEnergy, true);
       std::thread t2(&ct::SeamCarver::energy, this, bgr, pixelEnergy, false);
       t1.join();
-      t2.join(); // total ~115ms
+      t2.join(); // total ~95ms
       stop = high_resolution_clock::now();
       duration = duration_cast<microseconds>(stop - start);
     }
@@ -119,6 +119,7 @@ bool ct::SeamCarver::findVerticalSeams(int32_t numSeams, vector< vector<double> 
     throw std::out_of_range("outSeams does not have enough rows\n");
   }
 
+  // DEBUGGING
   int32_t count = 0;
 
   // initialize constants to be used throughout function
@@ -214,7 +215,10 @@ bool ct::SeamCarver::findVerticalSeams(int32_t numSeams, vector< vector<double> 
       continue;
     }
   }
+
+  // DEBUGGING
   std::cout << "recalculated total times: " << count << std::endl;
+
   return true;
 }
 
@@ -447,7 +451,7 @@ void ct::SeamCarver::energy(const vector<cv::Mat>& bgr, vector< vector<double> >
           deltaSquareY = (pow(bgr[2].at<uchar>(r + 1, c) - bgr[2].at<uchar>(r - 1, c), 2.0) +  // DeltaRy^2
                           pow(bgr[1].at<uchar>(r + 1, c) - bgr[1].at<uchar>(r - 1, c), 2.0) +  // DeltaGy^2
                           pow(bgr[0].at<uchar>(r + 1, c) - bgr[0].at<uchar>(r - 1, c), 2.0));  // DeltaBy^2
-          outPixelEnergy[r][c] = sqrt(deltaSquareX + deltaSquareY);
+          outPixelEnergy[r][c] = deltaSquareX + deltaSquareY;
 
           // shift color values to the left
           Rx1 = Rx2;

@@ -95,7 +95,7 @@ protected:
   uint32_t capacity_;
 
   // position of last element
-  // also the number of elements (size)
+  // also the number of elements. returned when size is called
   uint32_t N_;
 
   // pointer to where the raw data will be stored
