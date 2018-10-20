@@ -16,7 +16,7 @@ namespace ct {
 
   class SeamCarver {
   public:
-    SeamCarver(double margin_energy = 624.6198844097104) : MARGIN_ENERGY(margin_energy) {}
+    SeamCarver(double margin_energy = 390150.0) : MARGIN_ENERGY(margin_energy) {}
 
     ~SeamCarver() {}
 

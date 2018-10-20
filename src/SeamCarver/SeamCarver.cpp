@@ -61,7 +61,7 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
 
       // call built-in energy computation function
       start = high_resolution_clock::now();
-      this->energy(bgr, pixelEnergy); // ~130ms
+      this->energy(bgr, pixelEnergy); // ~160ms
       stop = high_resolution_clock::now();
       duration = duration_cast<microseconds>(stop - start);
     }
@@ -442,7 +442,7 @@ void ct::SeamCarver::energy(const vector<cv::Mat>& bgr, vector< vector<double> >
         deltaSquareY = (pow(bgr[2].at<uchar>(r + 1, c) - bgr[2].at<uchar>(r - 1, c), 2.0) +  // DeltaRy^2
                         pow(bgr[1].at<uchar>(r + 1, c) - bgr[1].at<uchar>(r - 1, c), 2.0) +  // DeltaGy^2
                         pow(bgr[0].at<uchar>(r + 1, c) - bgr[0].at<uchar>(r - 1, c), 2.0));  // DeltaBy^2
-        outPixelEnergy[r][c] = sqrt(deltaSquareX + deltaSquareY);
+        outPixelEnergy[r][c] = deltaSquareX + deltaSquareY;
 
         // shift color values to the left
         Rx1 = Rx2;
