@@ -66,7 +66,10 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
 
       // call built-in energy computation function
       start = high_resolution_clock::now();
-      this->energy(bgr, pixelEnergy); // ~110ms
+      std::thread t1(&ct::SeamCarver::energy, this, &bgr, &pixelEnergy, true);
+      std::thread t2(&ct::SeamCarver::energy, this, &bgr, &pixelEnergy, false);
+      t1.join();
+      t2.join(); // total ~63ms
       stop = high_resolution_clock::now();
       duration = duration_cast<microseconds>(stop - start);
     }
@@ -397,7 +400,7 @@ void ct::SeamCarver::markInfEnergy(vector<cv::Mat>& bgr, vector< vector<double> 
 void ct::SeamCarver::removeHorizontalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams) {}
 
 
-void ct::SeamCarver::energy(const vector<cv::Mat>& bgr, vector< vector<double> >& outPixelEnergy) {
+void ct::SeamCarver::energy(const vector<cv::Mat>* bgr, vector< vector<double> >* outPixelEnergy, bool oddColumns) {
   int32_t bottomRow = numRows - 1;
   int32_t rightCol = numCols - 1;
 
@@ -417,100 +420,103 @@ void ct::SeamCarver::energy(const vector<cv::Mat>& bgr, vector< vector<double> >
   // do odd columns and even columns separately in order to leverage cached values to prevent multiple memory accesses
   for (int32_t r = 0; r < numRows; r++) {
     /***** ODD COLUMNS *****/
-    // init starting column
-    c = 1;
-    // initialize color values to the left of current pixel (c = 1)
-    Rx1 = bgr[2].at<uchar>(r, c - 1);
-    Gx1 = bgr[1].at<uchar>(r, c - 1);
-    Bx1 = bgr[0].at<uchar>(r, c - 1);
-    for (int32_t n = 0; n < numOddCols; n++) {
-      // return energy for border pixels
-      if (r == 0 || c == 0 || r == bottomRow || c == rightCol) {
-        outPixelEnergy[r][c] = this->MARGIN_ENERGY;
+    if (oddColumns) {
+      // init starting column
+      c = 1;
+      // initialize color values to the left of current pixel (c = 1)
+      Rx1 = (*bgr)[2].at<uchar>(r, c - 1);
+      Gx1 = (*bgr)[1].at<uchar>(r, c - 1);
+      Bx1 = (*bgr)[0].at<uchar>(r, c - 1);
+      for (int32_t n = 0; n < numOddCols; n++) {
+        // return energy for border pixels
+        if (r == 0 || c == 0 || r == bottomRow || c == rightCol) {
+          (*outPixelEnergy)[r][c] = this->MARGIN_ENERGY;
+        }
+        else {
+          // compute energy for every pixel by computing gradient of colors
+          // DeltaX = DeltaRx^2 + DeltaGx^2 + DeltaBx^2
+          // DeltaY = DeltaRy^2 + DeltaGy^2 + DeltaBy^2
+          // energy = sqrt(DeltaX + DeltaY)
+
+          // get color values of the pixel to the right
+          Rx2 = (*bgr)[2].at<uchar>(r, c + 1);
+          Gx2 = (*bgr)[1].at<uchar>(r, c + 1);
+          Bx2 = (*bgr)[0].at<uchar>(r, c + 1);
+          DRx = Rx2 - Rx1;
+          DGx = Gx2 - Gx1;
+          DBx = Bx2 - Bx1;
+
+          Ry2 = (*bgr)[2].at<uchar>(r + 1, c);
+          Ry1 = (*bgr)[2].at<uchar>(r - 1, c);
+          Gy2 = (*bgr)[1].at<uchar>(r + 1, c);
+          Gy1 = (*bgr)[1].at<uchar>(r - 1, c);
+          By2 = (*bgr)[0].at<uchar>(r + 1, c);
+          By1 = (*bgr)[0].at<uchar>(r - 1, c);
+          DRy = Ry2 - Ry1;
+          DGy = Gy2 - Gy1;
+          DBy = By2 - By1;
+
+          deltaSquareX = (DRx * DRx) + (DGx * DGx) + (DBx * DBx);
+          deltaSquareY = (DRy * DRy) + (DGy * DGy) + (DBy * DBy);
+
+          (*outPixelEnergy)[r][c] = deltaSquareX + deltaSquareY;
+
+          // shift color values to the left
+          Rx1 = Rx2;
+          Gx1 = Gx2;
+          Bx1 = Bx2;
+        }
+        c = c + 2;
       }
-      else {
-        // compute energy for every pixel by computing gradient of colors
-        // DeltaX = DeltaRx^2 + DeltaGx^2 + DeltaBx^2
-        // DeltaY = DeltaRy^2 + DeltaGy^2 + DeltaBy^2
-        // energy = sqrt(DeltaX + DeltaY)
-
-        // get color values of the pixel to the right
-        Rx2 = bgr[2].at<uchar>(r, c + 1);
-        Gx2 = bgr[1].at<uchar>(r, c + 1);
-        Bx2 = bgr[0].at<uchar>(r, c + 1);
-        DRx = Rx2 - Rx1;
-        DGx = Gx2 - Gx1;
-        DBx = Bx2 - Bx1;
-
-        Ry2 = bgr[2].at<uchar>(r + 1, c);
-        Ry1 = bgr[2].at<uchar>(r - 1, c);
-        Gy2 = bgr[1].at<uchar>(r + 1, c);
-        Gy1 = bgr[1].at<uchar>(r - 1, c);
-        By2 = bgr[0].at<uchar>(r + 1, c);
-        By1 = bgr[0].at<uchar>(r - 1, c);
-        DRy = Ry2 - Ry1;
-        DGy = Gy2 - Gy1;
-        DBy = By2 - By1;
-
-        deltaSquareX = (DRx * DRx) + (DGx * DGx) + (DBx * DBx);
-        deltaSquareY = (DRy * DRy) + (DGy * DGy) + (DBy * DBy);
-
-        outPixelEnergy[r][c] = deltaSquareX + deltaSquareY;
-
-        // shift color values to the left
-        Rx1 = Rx2;
-        Gx1 = Gx2;
-        Bx1 = Bx2;
-      }
-      c = c + 2;
     }
-
     /***** EVEN COLUMNS *****/
-    // init starting column
-    c = 0;
-    // initialize color values to the right of current column (c = 0)
-    Rx2 = bgr[2].at<uchar>(r, c + 1);
-    Gx2 = bgr[1].at<uchar>(r, c + 1);
-    Bx2 = bgr[0].at<uchar>(r, c + 1);
-    for (int32_t n = 0; n < numEvenCols; n++) {
-      // return energy for border pixels
-      if (r == 0 || c == 0 || r == bottomRow || c == rightCol) {
-        outPixelEnergy[r][c] = this->MARGIN_ENERGY;
+    else {
+      // init starting column
+      c = 0;
+      // initialize color values to the right of current column (c = 0)
+      Rx2 = (*bgr)[2].at<uchar>(r, c + 1);
+      Gx2 = (*bgr)[1].at<uchar>(r, c + 1);
+      Bx2 = (*bgr)[0].at<uchar>(r, c + 1);
+      for (int32_t n = 0; n < numEvenCols; n++) {
+        // return energy for border pixels
+        if (r == 0 || c == 0 || r == bottomRow || c == rightCol) {
+          (*outPixelEnergy)[r][c] = this->MARGIN_ENERGY;
+        }
+        else {
+          // compute energy for every pixel by computing gradient of colors
+          // DeltaX = DeltaRx^2 + DeltaGx^2 + DeltaBx^2
+          // DeltaY = DeltaRy^2 + DeltaGy^2 + DeltaBy^2
+          // energy = sqrt(DeltaX + DeltaY)
+
+          // move color values to the left
+          Rx1 = Rx2;
+          Gx1 = Gx2;
+          Bx1 = Bx2;
+          // get new color values to the right
+          Rx2 = (*bgr)[2].at<uchar>(r, c + 1);
+          Gx2 = (*bgr)[1].at<uchar>(r, c + 1);
+          Bx2 = (*bgr)[0].at<uchar>(r, c + 1);
+          DRx = Rx2 - Rx1;
+          DGx = Gx2 - Gx1;
+          DBx = Bx2 - Bx1;
+
+          Ry2 = (*bgr)[2].at<uchar>(r + 1, c);
+          Ry1 = (*bgr)[2].at<uchar>(r - 1, c);
+          Gy2 = (*bgr)[1].at<uchar>(r + 1, c);
+          Gy1 = (*bgr)[1].at<uchar>(r - 1, c);
+          By2 = (*bgr)[0].at<uchar>(r + 1, c);
+          By1 = (*bgr)[0].at<uchar>(r - 1, c);
+          DRy = Ry2 - Ry1;
+          DGy = Gy2 - Gy1;
+          DBy = By2 - By1;
+
+          deltaSquareX = (DRx * DRx) + (DGx * DGx) + (DBx * DBx);
+          deltaSquareY = (DRy * DRy) + (DGy * DGy) + (DBy * DBy);
+
+          (*outPixelEnergy)[r][c] = deltaSquareX + deltaSquareY;
+        }
+        c = c + 2;
       }
-      else {
-        // compute energy for every pixel by computing gradient of colors
-        // DeltaX = DeltaRx^2 + DeltaGx^2 + DeltaBx^2
-        // DeltaY = DeltaRy^2 + DeltaGy^2 + DeltaBy^2
-        // energy = sqrt(DeltaX + DeltaY)
-
-        // move color values to the left
-        Rx1 = Rx2;
-        Gx1 = Gx2;
-        Bx1 = Bx2;
-        // get new color values to the right
-        Rx2 = bgr[2].at<uchar>(r, c + 1);
-        Gx2 = bgr[1].at<uchar>(r, c + 1);
-        Bx2 = bgr[0].at<uchar>(r, c + 1);
-        DRx = Rx2 - Rx1;
-        DGx = Gx2 - Gx1;
-        DBx = Bx2 - Bx1;
-
-        Ry2 = bgr[2].at<uchar>(r + 1, c);
-        Ry1 = bgr[2].at<uchar>(r - 1, c);
-        Gy2 = bgr[1].at<uchar>(r + 1, c);
-        Gy1 = bgr[1].at<uchar>(r - 1, c);
-        By2 = bgr[0].at<uchar>(r + 1, c);
-        By1 = bgr[0].at<uchar>(r - 1, c);
-        DRy = Ry2 - Ry1;
-        DGy = Gy2 - Gy1;
-        DBy = By2 - By1;
-
-        deltaSquareX = (DRx * DRx) + (DGx * DGx) + (DBx * DBx);
-        deltaSquareY = (DRy * DRy) + (DGy * DGy) + (DBy * DBy);
-
-        outPixelEnergy[r][c] = deltaSquareX + deltaSquareY;
-      }
-      c = c + 2;
     }
   }
 }
