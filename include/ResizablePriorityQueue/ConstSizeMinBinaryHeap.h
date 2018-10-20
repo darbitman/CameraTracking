@@ -53,23 +53,14 @@ public:
 
   /**
    * @brief return the number of elements in the queue
-   * @return uint32_t number of queue entries
    */
   uint32_t size() const;
-
-  /**
-   * @brief return the maximum number of elements that can be stored in the queue
-   * @return uint32_t maximum number of elements that can be stored in the queue
-   */
-  uint32_t capacity() const;
 
   /**
    * @brief check if the queue is empty
    * @return bool returns true if queue is empty
    */
   bool empty() const;
-
-  ConstSizeMinBinaryHeap operator=(const ConstSizeMinBinaryHeap& rhs) = delete;
 
 protected:
   /**
@@ -115,16 +106,6 @@ ConstSizeMinBinaryHeap<_Tp>::ConstSizeMinBinaryHeap(uint32_t capacity) : N_(0), 
 
 
 template<typename _Tp>
-ConstSizeMinBinaryHeap<_Tp>::ConstSizeMinBinaryHeap() : N_(0), capacity_(0), heap_(nullptr) {}
-
-
-template<typename _Tp>
-ConstSizeMinBinaryHeap<_Tp>::~ConstSizeMinBinaryHeap() {
-  delete[] heap_;
-}
-
-
-template<typename _Tp>
 ConstSizeMinBinaryHeap<_Tp>::ConstSizeMinBinaryHeap(ConstSizeMinBinaryHeap<_Tp>& rhs) {
   N_ = rhs.N_;
   capacity_ = rhs.capacity_;
@@ -156,18 +137,12 @@ bool ConstSizeMinBinaryHeap<_Tp>::allocate(uint32_t capacity) {
 
 template<typename _Tp>
 bool ConstSizeMinBinaryHeap<_Tp>::push(_Tp element) {
-  // verify memory is allocated
+
+  // verify memory exists
   // verify that capacity is non-zero and positive
-  // check if queue full
-  if (this->heap_ != nullptr &&
-      this->capacity_ > 0 &&
-      this->N_ < this->capacity_) {
-    this->heap_[++N_] = element;
-    this->swim(N_);
-    return true;
-  }
-  else {
-    return false;
+  if (heap_ != nullptr && capacity_ > 0) {
+    heap_[++N_] = element;
+    swim(N_);
   }
 }
 
@@ -206,14 +181,22 @@ uint32_t ConstSizeMinBinaryHeap<_Tp>::size() const {
 
 
 template<typename _Tp>
-uint32_t ConstSizeMinBinaryHeap<_Tp>::capacity() const {
-  return this->capacity_;
+bool ConstSizeMinBinaryHeap<_Tp>::empty() const {
+  return this->N_ == 0;
 }
 
 
 template<typename _Tp>
-bool ConstSizeMinBinaryHeap<_Tp>::empty() const {
-  return this->N_ == 0;
+ConstSizeMinBinaryHeap<_Tp>::ConstSizeMinBinaryHeap() {
+  this->N_ = 0;
+  this->capacity_ = 0;
+  this->heap_ = nullptr;
+}
+
+
+template<typename _Tp>
+ConstSizeMinBinaryHeap<_Tp>::~ConstSizeMinBinaryHeap() {
+  delete[] heap_;
 }
 
 

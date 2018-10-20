@@ -34,6 +34,7 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
   marked.resize(numRows);
   for (int32_t r = 0; r < numRows; r++) {
     marked[r].resize(numCols);
+    seams[r].allocate(numSeams);
   }
 
   // vector to store the image's channels separately
