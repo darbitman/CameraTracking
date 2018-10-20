@@ -65,9 +65,11 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
       duration = duration_cast<microseconds>(stop - start);
 
       // call built-in energy computation function
+      // if there are more rows than columns, launch a thread to compute odd and even rows separately
+      // if there are more columns than rows, launch a thread to compute odd and even columns separately
       start = high_resolution_clock::now();
-      std::thread t1(&ct::SeamCarver::energy, this, &bgr, &pixelEnergy, true);
-      std::thread t2(&ct::SeamCarver::energy, this, &bgr, &pixelEnergy, false);
+      std::thread t1((numRows > numCols ? &ct::SeamCarver::energyForEveryColumn : &ct::SeamCarver::energyForEveryRow), this, &bgr, &pixelEnergy, true);
+      std::thread t2((numRows > numCols ? &ct::SeamCarver::energyForEveryColumn : &ct::SeamCarver::energyForEveryRow), this, &bgr, &pixelEnergy, false);
       t1.join();
       t2.join(); // total ~63ms
       stop = high_resolution_clock::now();
@@ -400,7 +402,7 @@ void ct::SeamCarver::markInfEnergy(vector<cv::Mat>& bgr, vector< vector<double> 
 void ct::SeamCarver::removeHorizontalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams) {}
 
 
-void ct::SeamCarver::energy(const vector<cv::Mat>* bgr, vector< vector<double> >* outPixelEnergy, bool oddColumns) {
+void ct::SeamCarver::energyForEveryRow(const vector<cv::Mat>* bgr, vector< vector<double> >* outPixelEnergy, bool oddColumns) {
   int32_t bottomRow = numRows - 1;
   int32_t rightCol = numCols - 1;
 
@@ -516,6 +518,129 @@ void ct::SeamCarver::energy(const vector<cv::Mat>* bgr, vector< vector<double> >
           (*outPixelEnergy)[r][c] = deltaSquareX + deltaSquareY;
         }
         c = c + 2;
+      }
+    }
+  }
+}
+
+
+void ct::SeamCarver::energyForEveryColumn(const vector<cv::Mat>* bgr, vector< vector<double> >* outPixelEnergy, bool oddRows) {
+  int32_t bottomRow = numRows - 1;
+  int32_t rightCol = numCols - 1;
+
+  double computedEnergy = 0.0;
+  int32_t numOddRows = numRows / 2;
+  int32_t numEvenRows = numRows - numOddRows;
+
+  // local variables used in energy function
+  double Rx2, Rx1, Gx2, Gx1, Bx2, Bx1;    // RGB of pixel to the left and to the right
+  double DRx, DGx, DBx;                   // delta of RGB pixels in the x-direction
+  double Ry2, Ry1, Gy2, Gy1, By2, By1;    // RGB of pixel above and below
+  double DRy, DGy, DBy;                   // delta of RGB pixels in the y-direction
+  double deltaSquareX, deltaSquareY;
+  int32_t r;
+
+  // compute energy for every row
+  // do odd columns and even columns separately in order to leverage cached values to prevent multiple memory accesses
+  for (int32_t c = 0; c < numCols; c++) {
+    /***** ODD ROWS *****/
+    if (oddRows) {
+      // init starting column
+      r = 1;
+      // initialize color values of the pixel above current pixel (r = 1)
+      Ry1 = (*bgr)[2].at<uchar>(r - 1, c);
+      Gy1 = (*bgr)[1].at<uchar>(r - 1, c);
+      By1 = (*bgr)[0].at<uchar>(r - 1, c);
+      for (int32_t n = 0; n < numOddRows; n++) {
+        // return energy for border pixels
+        if (r == 0 || c == 0 || r == bottomRow || c == rightCol) {
+          (*outPixelEnergy)[r][c] = this->MARGIN_ENERGY;
+        }
+        else {
+          // compute energy for every pixel by computing gradient of colors
+          // DeltaX = DeltaRx^2 + DeltaGx^2 + DeltaBx^2
+          // DeltaY = DeltaRy^2 + DeltaGy^2 + DeltaBy^2
+          // energy = sqrt(DeltaX + DeltaY)
+
+          // get color values of the pixel below current pixel
+          Ry2 = (*bgr)[2].at<uchar>(r + 1, c);
+          Gy2 = (*bgr)[1].at<uchar>(r + 1, c);
+          By2 = (*bgr)[0].at<uchar>(r + 1, c);
+          DRy = Ry2 - Ry1;
+          DGy = Gy2 - Gy1;
+          DBy = By2 - By1;
+
+          Rx2 = (*bgr)[2].at<uchar>(r, c + 1);
+          Rx1 = (*bgr)[2].at<uchar>(r, c - 1);
+          Gx2 = (*bgr)[1].at<uchar>(r, c + 1);
+          Gx1 = (*bgr)[1].at<uchar>(r, c - 1);
+          Bx2 = (*bgr)[0].at<uchar>(r, c + 1);
+          Bx1 = (*bgr)[0].at<uchar>(r, c - 1);
+          DRx = Rx2 - Rx1;
+          DGx = Gx2 - Gx1;
+          DBx = Bx2 - Bx1;
+
+          deltaSquareX = (DRx * DRx) + (DGx * DGx) + (DBx * DBx);
+          deltaSquareY = (DRy * DRy) + (DGy * DGy) + (DBy * DBy);
+
+          (*outPixelEnergy)[r][c] = deltaSquareX + deltaSquareY;
+
+          // shift color values up
+          Ry1 = Ry2;
+          Gy1 = Gy2;
+          By1 = By2;
+        }
+        r = r + 2;
+      }
+    }
+    /***** EVEN ROWS *****/
+    else {
+      // init starting column
+      r = 0;
+      // initialize color values of the pixel above current pixel (r = 0)
+      Ry2 = (*bgr)[2].at<uchar>(r + 1, c);
+      Gy2 = (*bgr)[1].at<uchar>(r + 1, c);
+      By2 = (*bgr)[0].at<uchar>(r + 1, c);
+      for (int32_t n = 0; n < numEvenRows; n++) {
+        // return energy for border pixels
+        if (r == 0 || c == 0 || r == bottomRow || c == rightCol) {
+          (*outPixelEnergy)[r][c] = this->MARGIN_ENERGY;
+        }
+        else {
+          // compute energy for every pixel by computing gradient of colors
+          // DeltaX = DeltaRx^2 + DeltaGx^2 + DeltaBx^2
+          // DeltaY = DeltaRy^2 + DeltaGy^2 + DeltaBy^2
+          // energy = sqrt(DeltaX + DeltaY)
+
+          // shift color values up
+          Ry1 = Ry2;
+          Gy1 = Gy2;
+          By1 = By2;
+
+          // get new color values below
+          Ry2 = (*bgr)[2].at<uchar>(r + 1, c);
+          Gy2 = (*bgr)[1].at<uchar>(r + 1, c);
+          By2 = (*bgr)[0].at<uchar>(r + 1, c);
+          DRy = Ry2 - Ry1;
+          DGy = Gy2 - Gy1;
+          DBy = By2 - By1;
+
+          Rx2 = (*bgr)[2].at<uchar>(r, c + 1);
+          Rx1 = (*bgr)[2].at<uchar>(r, c - 1);
+          Gx2 = (*bgr)[1].at<uchar>(r, c + 1);
+          Gx1 = (*bgr)[1].at<uchar>(r, c - 1);
+          Bx2 = (*bgr)[0].at<uchar>(r, c + 1);
+          Bx1 = (*bgr)[0].at<uchar>(r, c - 1);
+          DRx = Rx2 - Rx1;
+          DGx = Gx2 - Gx1;
+          DBx = Bx2 - Bx1;
+
+          deltaSquareX = (DRx * DRx) + (DGx * DGx) + (DBx * DBx);
+          deltaSquareY = (DRy * DRy) + (DGy * DGy) + (DBy * DBy);
+
+          (*outPixelEnergy)[r][c] = deltaSquareX + deltaSquareY;
+        }
+        r = r + 2;
       }
     }
   }
