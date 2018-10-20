@@ -30,16 +30,6 @@ namespace ct {
      */
     bool findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergyFn = nullptr);
 
-    /**
-     * @brief remove horizontal seams
-     * @param numSeams number of vertical seams to remove
-     * @param img input image
-     * @param outImg output paramter
-     * @param computeEnergy pointer to a user-defined energy function. If one is not provided, internal one will be used
-     * @return bool indicates whether seam removal was successful or not
-     */
-    bool findAndRemoveHorizontalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergy = nullptr);
-
   protected:
     /**
      * @brief find vertical seam to remove
@@ -49,15 +39,6 @@ namespace ct {
      * @return bool indicates success
      */
     bool findVerticalSeams(int32_t numSeams, vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeams);
-
-    /**
-     * @brief find horizontal seam to remove
-     * @param pixelEnergy calculated pixel energy of image
-     * @param marked previously marked pixels for seam removal
-     * @param outSeams output parameter (vector of priority queues)
-     * @return bool indicates success
-     */
-    void findHorizontalSeams(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeams);
 
     /**
     * @brief calculates the energy required to reach bottom row
@@ -92,18 +73,19 @@ namespace ct {
     void markInfEnergy(vector<cv::Mat>& bgr, vector< vector<double> >& pixelEnergy);
 
     /**
-     * @brief remove horizontal seam from img given by row locations stored in seam
-     * @param bgr image separate into 3 channels (BLUE GREEN RED)
-     * @param seam row locations of which pixel to remove, where the seam index is the column
-     */
-    void removeHorizontalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams);
-
-    /**
-     * @brief compute energy for every pixel of image
+     * @brief compute energy for every pixel for every row and choose whether to do odd/even columns
      * @param bgr image separate into 3 channels (BLUE GREEN RED)
      * @param outPixelEnergy output parameter that stores the energy for every pixel
+     * @param oddColumns compute energy for odd columns or even columns
      */
     void energyForEveryRow(const vector<cv::Mat>* bgr, vector< vector<double> >* outPixelEnergy, bool oddColumns);
+
+    /**
+     * @brief compute energy for every pixel for every column and choose whether to do odd/even rows
+     * @param bgr image separate into 3 channels (BLUE GREEN RED)
+     * @param outPixelEnergy output parameter that stores the energy for every pixel
+     * @param oddRows compute energy for odd rows or even rows
+     */
     void energyForEveryColumn(const vector<cv::Mat>* bgr, vector< vector<double> >* outPixelEnergy, bool oddRows);
 
     // default energy at the borders of the image
@@ -111,6 +93,9 @@ namespace ct {
 
     int32_t numRows;
     int32_t numCols;
+    int32_t bottomRow;
+    int32_t rightCol;
+    double posInf;
   };
 
   
