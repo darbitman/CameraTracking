@@ -16,7 +16,7 @@ namespace ct {
 
   class SeamCarver {
   public:
-    SeamCarver(double margin_energy = 390150.0) : MARGIN_ENERGY(margin_energy) {}
+    SeamCarver(double margin_energy = 624.6198844097104) : MARGIN_ENERGY(margin_energy) {}
 
     ~SeamCarver() {}
 
@@ -102,9 +102,8 @@ namespace ct {
      * @brief compute energy for every pixel of image
      * @param bgr image separate into 3 channels (BLUE GREEN RED)
      * @param outPixelEnergy output parameter that stores the energy for every pixel
-     * @param oddColumsn indicates whether to compute energy for odd columns or for even columns
      */
-    void energy(const vector<cv::Mat>& bgr, vector< vector<double> >& outPixelEnergy, bool oddColumns);
+    void energy(const vector<cv::Mat>& bgr, vector< vector<double> >& outPixelEnergy);
 
     // default energy at the borders of the image
     const double MARGIN_ENERGY;
