@@ -77,7 +77,7 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
 
     // find all vertical seams
     start = high_resolution_clock::now();
-    this->findVerticalSeams(numSeams, pixelEnergy, marked, seams); // ~840ms
+    this->findVerticalSeams(numSeams, pixelEnergy, marked, seams); // ~1.2s
     stop = high_resolution_clock::now();
     duration = duration_cast<microseconds>(stop - start);
 
@@ -506,7 +506,7 @@ void ct::SeamCarver::energy(const vector<cv::Mat>& bgr, vector< vector<double> >
         deltaSquareX = (DRx * DRx) + (DGx * DGx) + (DBx * DBx);
         deltaSquareY = (DRy * DRy) + (DGy * DGy) + (DBy * DBy);
 
-        outPixelEnergy[r][c] = sqrt(deltaSquareX + deltaSquareY);
+        outPixelEnergy[r][c] = deltaSquareX + deltaSquareY;
       }
       c = c + 2;
     }
