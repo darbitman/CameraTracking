@@ -78,7 +78,7 @@ namespace ct {
      * @param outPixelEnergy output parameter that stores the energy for every pixel
      * @param oddColumns compute energy for odd columns or even columns
      */
-    void energyForEveryRow(const vector<cv::Mat>* bgr, vector< vector<double> >* outPixelEnergy, bool oddColumns);
+    void energyForEveryRow(const vector<cv::Mat>& bgr, vector< vector<double> >& outPixelEnergy, bool oddColumns);
 
     /**
      * @brief compute energy for every pixel for every column and choose whether to do odd/even rows
@@ -86,7 +86,7 @@ namespace ct {
      * @param outPixelEnergy output parameter that stores the energy for every pixel
      * @param oddRows compute energy for odd rows or even rows
      */
-    void energyForEveryColumn(const vector<cv::Mat>* bgr, vector< vector<double> >* outPixelEnergy, bool oddRows);
+    void energyForEveryColumn(const vector<cv::Mat>& bgr, vector< vector<double> >& outPixelEnergy, bool oddRows);
 
     // default energy at the borders of the image
     const double MARGIN_ENERGY;
