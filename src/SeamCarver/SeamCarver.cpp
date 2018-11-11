@@ -116,6 +116,15 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
 }
 
 
+void ct::SeamCarver::setKeepoutRegion(int32_t row, int32_t col, int32_t width, int32_t height) {
+  this->keepoutRegion.row_ = row;
+  this->keepoutRegion.col_ = col;
+  this->keepoutRegion.width_ = width;
+  this->keepoutRegion.height_ = height;
+  this->keepoutRegionExists = true;
+}
+
+
 bool ct::SeamCarver::findVerticalSeams(int32_t numSeams, vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeams) {
   if (pixelEnergy.size() == 0) {
     throw std::out_of_range("Pixel energy vector is empty\n");

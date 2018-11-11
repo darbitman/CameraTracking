@@ -14,9 +14,18 @@ namespace ct {
   //typedef vector< priority_queue<int32_t, vector<int32_t>, std::greater<int32_t> > > vecMinPQ;
   typedef vector< ConstSizeMinBinaryHeap<int32_t> > vecMinPQ;
 
+
+  // used to define the local keepout region
+  struct KeepoutRegionStruct {
+    int32_t row_;
+    int32_t col_;
+    int32_t width_;
+    int32_t height_;
+  };
+
   class SeamCarver {
   public:
-    SeamCarver(double margin_energy = 390150.0) : MARGIN_ENERGY(margin_energy) {}
+    SeamCarver(double margin_energy = 390150.0) : MARGIN_ENERGY(margin_energy), keepoutRegionExists(false) {}
 
     ~SeamCarver() {}
 
@@ -29,6 +38,19 @@ namespace ct {
      * @return bool indicates whether seam removal was successful or not
      */
     bool findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergyFn = nullptr);
+
+    /**
+     * @brief define a keepout region which will not be included in seams to be removed
+     * @param row marks the row of where to start the bounding box for the keepout region
+     * @param col marks the col of where to start the bounding box for the keepout region
+     * @param width bounding box width
+     * @param height bounding box height
+     */
+    void setKeepoutRegion(int32_t row, int32_t col, int32_t width, int32_t height);
+
+    /**
+     * @brief remove the existing keepout region
+
 
   protected:
     /**
@@ -96,6 +118,8 @@ namespace ct {
     int32_t bottomRow;
     int32_t rightCol;
     double posInf;
+    KeepoutRegionStruct keepoutRegion;
+    bool keepoutRegionExists;
   };
 
   

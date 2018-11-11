@@ -11,4 +11,5 @@ add_executable(SeamCarverTest
                SeamCarverTest.cpp)
 target_link_libraries(SeamCarverTest
                       SeamCarver
+                      SeamCarverKeepout
                       ${OpenCV_LIBS})
