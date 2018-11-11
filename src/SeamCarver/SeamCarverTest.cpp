@@ -1,4 +1,5 @@
 #include "SeamCarver.h"
+#include "SeamCarverKeepout.h"
 #include <iostream>
 #include <thread>
 #include <chrono>

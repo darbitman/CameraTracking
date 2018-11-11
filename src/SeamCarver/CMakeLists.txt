@@ -6,6 +6,11 @@ target_sources(SeamCarver PRIVATE
                "SeamCarver.cpp"
                "../../include/SeamCarver/SeamCarver.h"
                "../../include/ResizablePriorityQueue/ConstSizeMinBinaryHeap.h")
+               
+add_library(SeamCarverKeepout "")
+target_sources(SeamCarverKeepout PRIVATE
+               "SeamCarverKeepout.cpp"
+               "../../include/SeamCarver/SeamCarverKeepout.h")
 
 add_executable(SeamCarverTest
                SeamCarverTest.cpp)
