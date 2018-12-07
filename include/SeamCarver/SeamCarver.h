@@ -16,7 +16,7 @@ namespace ct {
 
   class SeamCarver {
   public:
-    SeamCarver(double margin_energy = 390150.0) : MARGIN_ENERGY(margin_energy) {}
+    SeamCarver(double margin_energy = 390150.0) : MARGIN_ENERGY(margin_energy), numRows(0), numCols(0), bottomRow(0), rightCol(0), posInf(0) {}
 
     ~SeamCarver() {}
 
@@ -38,7 +38,7 @@ namespace ct {
      * @param outSeams output parameter (vector of priority queues)
      * @return bool indicates success
      */
-    bool findVerticalSeams(int32_t numSeams, vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeams);
+    bool findVerticalSeams(int32_t numSeams, vector< vector<double> >& pixelEnergy, vecMinPQ& outSeams);
 
     /**
     * @brief calculates the energy required to reach bottom row
@@ -47,7 +47,7 @@ namespace ct {
     * @param totalEnergyTo output parameter: total energy required to reach pixel at r,c
     * @param colTo previous row's column to get to current pixel at row,col
     */
-    void calculateVerticalPathEnergy(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vector< vector<double> >& totalEnergyTo, vector< vector<int32_t> >& colTo);
+    void calculateVerticalPathEnergy(const vector< vector<double> >& pixelEnergy, vector< vector<double> >& totalEnergyTo, vector< vector<int32_t> >& colTo);
 
     /**
      * @brief remove vertical seam from img given by column locations stored in seam
@@ -96,6 +96,10 @@ namespace ct {
     int32_t bottomRow;
     int32_t rightCol;
     double posInf;
+
+    // vector to store pixels that have been previously marked for removal
+    // will ignore these marked pixels when searching for a new seam
+    vector< vector<bool> > marked;
   };
  
 }

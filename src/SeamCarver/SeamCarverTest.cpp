@@ -57,7 +57,7 @@ int main() {
   //imshow("Red", bgr[2]);
 
   //vector< vector<double> > outen;
-  ct::SeamCarver sc1;
+  ct::SeamCarverKeepout sc1;
   //sc1.energy(img, outen);
 
   //vector< vector<char> > enint;
@@ -103,6 +103,7 @@ int main() {
   //imshow("energy clone", energyClone);
 
   cv::Mat result;
+  sc1.setKeepoutRegion(100, 100, 50, 50);
   sc1.findAndRemoveVerticalSeams(50, img, result);
   //sc1.removeHorizontalSeams(20, img, result);
 

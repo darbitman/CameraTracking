@@ -33,15 +33,16 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
   vecMinPQ seams;
   seams.resize(numRows);
 
-  // vector to store pixels that have been previously marked for removal
-  // will ignore these marked pixels when searching for a new seam
-  vector< vector<bool> > marked;
-
+  // make sure marked hasn't been set before
   // resize marked matrix to the same size as img;
-  // resize on a vector of bools initializes its elements to false by default
-  marked.resize(numRows);
-  for (int32_t r = 0; r < numRows; r++) {
-    marked[r].resize(numCols);
+  if (marked.size() != numRows) {
+    marked.resize(numRows);
+    for (int32_t r = 0; r < numRows; r++) {
+      marked[r].resize(numCols);
+      for (int32_t c = 0; c < numCols; c++) {
+        marked[r][c] = false;
+      }
+    }
   }
 
   // vector to store the image's channels separately
@@ -87,7 +88,7 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
 
     // find all vertical seams
     start = high_resolution_clock::now();
-    this->findVerticalSeams(numSeams, pixelEnergy, marked, seams); // ~2.5s
+    this->findVerticalSeams(numSeams, pixelEnergy, seams); // ~2.5s
     stop = high_resolution_clock::now();
     duration = duration_cast<microseconds>(stop - start);
 
@@ -116,7 +117,7 @@ bool ct::SeamCarver::findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat&
 }
 
 
-bool ct::SeamCarver::findVerticalSeams(int32_t numSeams, vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vecMinPQ& outSeams) {
+bool ct::SeamCarver::findVerticalSeams(int32_t numSeams, vector< vector<double> >& pixelEnergy, vecMinPQ& outSeams) {
   if (pixelEnergy.size() == 0) {
     throw std::out_of_range("Pixel energy vector is empty\n");
   }
@@ -143,7 +144,7 @@ bool ct::SeamCarver::findVerticalSeams(int32_t numSeams, vector< vector<double> 
   }
 
   // initial path calculation
-  this->calculateVerticalPathEnergy(pixelEnergy, marked, totalEnergyTo, colTo);
+  this->calculateVerticalPathEnergy(pixelEnergy, totalEnergyTo, colTo);
 
   // temporary seam to verify that there are no previously marked pixels in this seam
   // otherwise the cumulative energies need to be recalculated
@@ -174,7 +175,7 @@ bool ct::SeamCarver::findVerticalSeams(int32_t numSeams, vector< vector<double> 
       // need to recalculate the cumulative energy
       n--;
       count++;
-      this->calculateVerticalPathEnergy(pixelEnergy, marked, totalEnergyTo, colTo);
+      this->calculateVerticalPathEnergy(pixelEnergy, totalEnergyTo, colTo);
       std::cout << "recalculated seam: " << n + 1 << std::endl;
       goto continueSeamFindingLoop;
     }
@@ -221,7 +222,7 @@ bool ct::SeamCarver::findVerticalSeams(int32_t numSeams, vector< vector<double> 
 }
 
 
-void ct::SeamCarver::calculateVerticalPathEnergy(const vector< vector<double> >& pixelEnergy, vector < vector<bool> >& marked, vector< vector<double> >& totalEnergyTo, vector< vector<int32_t> >& colTo) {
+void ct::SeamCarver::calculateVerticalPathEnergy(const vector< vector<double> >& pixelEnergy, vector< vector<double> >& totalEnergyTo, vector< vector<int32_t> >& colTo) {
   // initialize top row
   for (int32_t c = 0; c < numCols; c++) {
     // if previously marked, set its energy to +INF
