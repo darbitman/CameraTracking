@@ -9,19 +9,19 @@ namespace ct {
   struct KeepoutRegionStruct {
     int32_t row_;
     int32_t col_;
-    int32_t width_;
     int32_t height_;
+    int32_t width_;
 
-    KeepoutRegionStruct(int32_t row, int32_t col, int32_t width, int32_t height) :
-      row_(row), col_(col), width_(width), height_(height) {}
+    KeepoutRegionStruct(int32_t row, int32_t col, int32_t height, int32_t width) :
+      row_(row), col_(col), height_(height), width_(width) {}
 
-    KeepoutRegionStruct() : row_(0), col_(0), width_(0), height_(0) {}
+    KeepoutRegionStruct() : row_(0), col_(0), height_(0), width_(0) {}
   };
 
   class SeamCarverKeepout : public SeamCarver {
   public:
-    SeamCarverKeepout(int32_t row, int32_t col, int32_t width, int32_t height, double margin_energy = 390150.0) :
-      SeamCarver(margin_energy), keepoutRegionExists_(true), keepoutRegion_(row, col, width, height) {}
+    SeamCarverKeepout(int32_t row, int32_t col, int32_t height, int32_t width, double margin_energy = 390150.0) :
+      SeamCarver(margin_energy), keepoutRegionExists_(true), keepoutRegion_(row, col, height, width) {}
 
     SeamCarverKeepout(double margin_energy = 390150.0) :
       SeamCarver(margin_energy), keepoutRegionExists_(false) {}
@@ -40,10 +40,10 @@ namespace ct {
      * @brief sets the keepout region
      * @param row starting row of keepout region (inclusive)
      * @param col starting column of keepout region (inclusive)
-     * @param width how many columns wide is the keepout region
      * @param height how many rows tall is the keepout region
+     * @param width how many columns wide is the keepout region
      */
-    void setKeepoutRegion(int32_t row, int32_t col, int32_t width, int32_t height);
+    void setKeepoutRegion(int32_t row, int32_t col, int32_t height, int32_t width);
 
     /**
      * @brief deletes the keepout region

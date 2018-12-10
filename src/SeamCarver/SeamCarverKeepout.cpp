@@ -13,7 +13,9 @@ bool ct::SeamCarverKeepout::findAndRemoveVerticalSeams(int32_t numSeams, const c
     }
   }
 
-  // set pixels to avoid by setting them as previously marked
+  // if marked matrix hasn't been initialized, need to initialize so that keepout region data isn't overwritten in a future memory initialization
+  // default initialization to false
+  // then initialize keepout region
   if (this->keepoutRegionExists_) {
     if (marked.size() != img.size().height ) {
       marked.resize(img.size().height);
@@ -25,6 +27,7 @@ bool ct::SeamCarverKeepout::findAndRemoveVerticalSeams(int32_t numSeams, const c
       }
     }
 
+    // set pixels to avoid by setting them as previously marked
     for (int32_t r = this->keepoutRegion_.row_; r < this->keepoutRegion_.row_ + this->keepoutRegion_.height_; r++) {
       for (int32_t c = this->keepoutRegion_.col_; c < this->keepoutRegion_.col_ + this->keepoutRegion_.width_; c++) {
         marked[r][c] = true;
@@ -36,24 +39,28 @@ bool ct::SeamCarverKeepout::findAndRemoveVerticalSeams(int32_t numSeams, const c
 }
 
 
-void ct::SeamCarverKeepout::setKeepoutRegion(int32_t row, int32_t col, int32_t width, int32_t height) {
+void ct::SeamCarverKeepout::setKeepoutRegion(int32_t row, int32_t col, int32_t height, int32_t width) {
   this->keepoutRegion_.row_ = row;
   this->keepoutRegion_.col_ = col;
-  this->keepoutRegion_.width_ = width;
   this->keepoutRegion_.height_ = height;
+  this->keepoutRegion_.width_ = width;
   this->keepoutRegionExists_ = true;
 }
 
 
 void ct::SeamCarverKeepout::deleteKeepoutRegion() {
-  if (this->keepoutRegionExists_) {
+  // check if marked matrix has been allocated
+  // if not, then don't need to unmark pixels in the keepout region
+  if (this->keepoutRegionExists_ && this->marked.size() > 0) {
+    // unmark mixels marked by keepout region
     if (this->keepoutRegion_.row_ + this->keepoutRegion_.height_ >= marked.size()) {
-
+      for (int32_t r = this->keepoutRegion_.row_; r < this->keepoutRegion_.row_ + this->keepoutRegion_.height_; r++) {
+        for (int32_t c = this->keepoutRegion_.col_; c < this->keepoutRegion_.col_ + this->keepoutRegion_.width_; c++) {
+          marked[r][c] = false;
+        }
+      }
     }
-
-    this->keepoutRegionExists_ = false;
   }
-
-  
+  this->keepoutRegionExists_ = false;
 
 }

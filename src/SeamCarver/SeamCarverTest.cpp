@@ -103,7 +103,7 @@ int main() {
   //imshow("energy clone", energyClone);
 
   cv::Mat result;
-  sc1.setKeepoutRegion(100, 100, 50, 50);
+  sc1.setKeepoutRegion(20, 550, 250, 80);
   sc1.findAndRemoveVerticalSeams(50, img, result);
   //sc1.removeHorizontalSeams(20, img, result);
 
