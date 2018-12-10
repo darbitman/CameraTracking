@@ -53,7 +53,7 @@ void ct::SeamCarverKeepout::deleteKeepoutRegion() {
   // if not, then don't need to unmark pixels in the keepout region
   if (this->keepoutRegionExists_ && this->marked.size() > 0) {
     // unmark mixels marked by keepout region
-    if (this->keepoutRegion_.row_ + this->keepoutRegion_.height_ >= marked.size()) {
+    if (this->keepoutRegion_.row_ + this->keepoutRegion_.height_ >= (int32_t)marked.size()) {
       for (int32_t r = this->keepoutRegion_.row_; r < this->keepoutRegion_.row_ + this->keepoutRegion_.height_; r++) {
         for (int32_t c = this->keepoutRegion_.col_; c < this->keepoutRegion_.col_ + this->keepoutRegion_.width_; c++) {
           marked[r][c] = false;
