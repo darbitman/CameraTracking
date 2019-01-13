@@ -23,7 +23,7 @@ namespace ct {
       return this->c.capacity();
     }
 
-    bool SetNonzeroCapacity(int32_t capacity)
+    bool SetCapacity(int32_t capacity)
     {
       if (this->c.capacity() > 0)
       {
