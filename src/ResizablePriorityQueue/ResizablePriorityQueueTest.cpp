@@ -1,51 +1,63 @@
 #include "ResizablePriorityQueue.h"
 #include "ConstSizeMinBinaryHeap.h"
-#include <iostream>
-#include <thread>
-#include <chrono>
-#include <queue>
+#include <gtest/gtest.h>
 
-using namespace std;
-using namespace std::chrono;
 using std::priority_queue;
 using std::vector;
 
-typedef priority_queue<int32_t, vector<int32_t>, std::greater<int32_t> > MinPQ;
+typedef ct::ResizablePriorityQueue<int32_t, std::greater<int32_t> > MinPQ;
 
-int main() {
-  MinPQ vpq;
-  int32_t entries = 50;
-  ct::ResizablePriorityQueue<int32_t, vector<int32_t>, std::greater<int32_t> > rpq(entries);
+struct ResizeablePriorityQueueTest : testing::Test
+{
+  MinPQ* pq;
 
-
-  auto start = high_resolution_clock::now();
-  auto stop = high_resolution_clock::now();
-  auto duration = duration_cast<microseconds>(stop - start);
-
-
-  start = high_resolution_clock::now();
-  for (int32_t i = 0; i < entries; i++) {
-    vpq.push(i);
+  ResizeablePriorityQueueTest()
+  {
+    pq = new MinPQ();
   }
-  stop = high_resolution_clock::now();
-  duration = duration_cast<microseconds>(stop - start);
 
-
-  start = high_resolution_clock::now();
-  for (int32_t i = 0; i < entries; i++) {
-    rpq.push(i);
+  virtual ~ResizeablePriorityQueueTest()
+  {
+    delete pq;
   }
-  stop = high_resolution_clock::now();
-  duration = duration_cast<microseconds>(stop - start);
+};
 
-  start = high_resolution_clock::now();
-  ConstSizeMinBinaryHeap<int32_t> csmbp(entries);
+TEST_F(ResizeablePriorityQueueTest, ContainerSize)
+{
+  // initial capacity should be 0
+  EXPECT_EQ(0, pq->GetContainerCapacity());
   
-  for (int32_t i = 0; i < entries; i++) {
-    csmbp.push(i);
-  }
-  stop = high_resolution_clock::now();
-  duration = duration_cast<microseconds>(stop - start);
+  // reserve memory for NewCapacity elements
+  int32_t NewCapacity = 100;
+  EXPECT_EQ(true, pq->SetNonzeroCapacity(NewCapacity));
+  EXPECT_EQ(NewCapacity, pq->GetContainerCapacity());
 
-  return 0;
+  // number of elements should be NewCapacity
+  // container capacity should be NewCapacity
+  for (int32_t n = 0; n < NewCapacity; n++)
+  {
+    pq->push(n);
+  }
+  EXPECT_EQ(pq->size(), NewCapacity);
+  EXPECT_EQ(pq->GetContainerCapacity(), NewCapacity);
+
+  // number of elements should increase by 1
+  // container capacity should AT LEAST increase by 1
+  pq->push(0);
+  EXPECT_EQ(pq->size(), NewCapacity + 1);
+  EXPECT_GE(pq->GetContainerCapacity(), NewCapacity + 1);
+
+  // remove all elements from the queue, so size should be 0
+  // capacity shall not change
+  while (pq->size() > 0)
+  {
+    pq->pop();
+  }
+  EXPECT_EQ(pq->size(), 0);
+  EXPECT_GE(pq->GetContainerCapacity(), NewCapacity + 1);
+}
+
+int main(int argc, char* argv[]) {
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
