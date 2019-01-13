@@ -5,3 +5,4 @@ CMakeLists.txt.user
 googletest/
 googletest-build/
 googletest-download/
+matlab/
