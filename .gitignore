@@ -2,3 +2,6 @@ bin/
 build/
 lib/
 CMakeLists.txt.user
+googletest/
+googletest-build/
+googletest-download/
