@@ -40,20 +40,20 @@ public:
   bool push(_Tp element);
 
   /**
-   * @brief delete minimum element and return it
+   * @brief remove top (minimum) element and return it
    * @return minimum element
    */
-  _Tp deleteMin();
+  _Tp pop();
 
   /**
-   * @brief return minimum element without deleting it
+   * @brief return the top (minimum) element without deleting it
    * @return minimum element
    */
-  _Tp getMin() const;
+  _Tp top() const;
 
   /**
    * @brief return the number of elements in the queue
-   * @return uint32_t number of queue entries
+   * @return uint32_t number of elements in the queue
    */
   uint32_t size() const;
 
@@ -173,7 +173,7 @@ bool ConstSizeMinBinaryHeap<_Tp>::push(_Tp element) {
 
 
 template<typename _Tp>
-_Tp ConstSizeMinBinaryHeap<_Tp>::deleteMin() {
+_Tp ConstSizeMinBinaryHeap<_Tp>::pop() {
   // initialize default return value
   _Tp min = _Tp();
   // verify memory exists
@@ -190,7 +190,7 @@ _Tp ConstSizeMinBinaryHeap<_Tp>::deleteMin() {
 
 
 template<typename _Tp>
-_Tp ConstSizeMinBinaryHeap<_Tp>::getMin() const {
+_Tp ConstSizeMinBinaryHeap<_Tp>::top() const {
   _Tp min = _Tp();
   if (heap_ != nullptr) {
     min = heap_[1];

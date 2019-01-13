@@ -339,10 +339,10 @@ void ct::SeamCarver::removeVerticalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams) 
     while (seams[r].size()) {
       numSeamsRemoved++;
       // column location of pixel to remove in row r
-      colToRemove = seams[r].deleteMin();
+      colToRemove = seams[r].pop();
       //seams[r].pop();
       // mark right endpoint/next pixel column
-      int32_t rightColBorder = (seams[r].empty() ? numCols : seams[r].getMin());
+      int32_t rightColBorder = (seams[r].empty() ? numCols : seams[r].top());
       // starting at the column to the right of the column to remove move the pixel to the left
       //   by the number of seams to the left of the pixel
       //   until the right end point which is either the last column or the next column to remove
@@ -366,7 +366,7 @@ void ct::SeamCarver::markVerticalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams) {
   for (int32_t r = 0; r < numRows; r++) {
     int32_t colToRemove = 0;
     while (seams[r].size()) {
-      colToRemove = seams[r].deleteMin();;
+      colToRemove = seams[r].pop();;
       //seams[r].pop();
       for (int32_t j = 0; j < 3; j++) {
         bgr[j].at<uchar>(r, colToRemove) = 0;

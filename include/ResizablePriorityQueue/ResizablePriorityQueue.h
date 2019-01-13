@@ -35,5 +35,16 @@ namespace ct {
         return true;
       }
     }
+
+    /**
+     * @brief remove top (minimum) element and return it
+     * @return minimum element
+     */
+    _Ty pop()
+    {
+      _Ty ToReturn = this->top();
+      std::priority_queue<_Ty, vector<_Ty>, _Pr>::pop();
+      return ToReturn;
+    }
   };
 }

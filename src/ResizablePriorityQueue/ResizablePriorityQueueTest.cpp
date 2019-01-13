@@ -5,7 +5,7 @@
 using std::priority_queue;
 using std::vector;
 
-typedef ct::ResizablePriorityQueue<int32_t, std::greater<int32_t> > MinPQ;
+typedef ct::ResizablePriorityQueue<int32_t, std::greater<int32_t>> MinPQ;
 
 struct ResizablePriorityQueueTest : testing::Test
 {
