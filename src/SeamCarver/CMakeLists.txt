@@ -1,4 +1,3 @@
-find_package(OpenCV REQUIRED)
 include_directories("../../include/SeamCarver"
                     "../../include/ResizablePriorityQueue")
 add_library(SeamCarver "")
@@ -17,4 +16,5 @@ add_executable(SeamCarverTest
 target_link_libraries(SeamCarverTest
                       SeamCarver
                       SeamCarverKeepout
-                      ${OpenCV_LIBS})
+                      ${OpenCV_LIBS}
+                      gtest_main)

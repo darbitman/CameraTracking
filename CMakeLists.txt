@@ -37,7 +37,7 @@ set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
 # the gtest and gtest_main targets.
 add_subdirectory(${CMAKE_SOURCE_DIR}/googletest
                  ${CMAKE_SOURCE_DIR}/googletest-build
-                 EXCLUDE_FROM_ALL)
+                 )
 
 
 
