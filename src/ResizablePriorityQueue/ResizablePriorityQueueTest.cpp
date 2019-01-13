@@ -57,6 +57,41 @@ TEST_F(ResizeablePriorityQueueTest, ContainerSize)
   EXPECT_GE(pq->GetContainerCapacity(), NewCapacity + 1);
 }
 
+TEST(ResizeableMinPriorityQueueTest, InitialNonZeroCapacity)
+{
+  // create a new Min Oriented Priority Queue with space for NewCapacity elements
+  int32_t NewCapacity = 100;
+  MinPQ* pq = new MinPQ(NewCapacity);
+  EXPECT_EQ(pq->size(), 0);
+  EXPECT_EQ(pq->GetContainerCapacity(), NewCapacity);
+
+  // number of elements should be NewCapacity
+  // container capacity should be NewCapacity
+  for (int32_t n = 0; n < NewCapacity; n++)
+  {
+    pq->push(n);
+  }
+  EXPECT_EQ(pq->size(), NewCapacity);
+  EXPECT_EQ(pq->GetContainerCapacity(), NewCapacity);
+
+  // number of elements should increase by 1
+  // container capacity should AT LEAST increase by 1
+  pq->push(0);
+  EXPECT_EQ(pq->size(), NewCapacity + 1);
+  EXPECT_GE(pq->GetContainerCapacity(), NewCapacity + 1);
+
+  // remove all elements from the queue, so size should be 0
+  // capacity shall not change
+  while (pq->size() > 0)
+  {
+    pq->pop();
+  }
+  EXPECT_EQ(pq->size(), 0);
+  EXPECT_GE(pq->GetContainerCapacity(), NewCapacity + 1);
+
+  delete pq;
+}
+
 int main(int argc, char* argv[]) {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
