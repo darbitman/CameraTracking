@@ -10,6 +10,14 @@ add_library(SeamCarverKeepout "")
 target_sources(SeamCarverKeepout PRIVATE
                "SeamCarverKeepout.cpp"
                "../../include/SeamCarver/SeamCarverKeepout.h")
+               
+add_library(PixelEnergy2D
+            STATIC
+            "")
+target_sources(PixelEnergy2D
+               PRIVATE
+               "PixelEnergy2D.cpp"
+               "../../include/SeamCarver/PixelEnergy2D.h")
 
 add_executable(SeamCarverTest
                SeamCarverTest.cpp)
