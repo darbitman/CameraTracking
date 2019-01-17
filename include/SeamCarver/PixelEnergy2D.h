@@ -55,10 +55,12 @@ namespace ct
     void SetDimensions(int32_t NumColumns, int32_t NumRows, int32_t NumChannels);
 
     /**
-     *
-     *
+     * @brief
+     * @param Image: 2D matrix representation of the image
+     * @param OutPixelEnergy: Out parameter, 2D vector of calculated pixel energies
+     * @param bDoOddColumns: Indicates whether odd or even columns are done
      */
-    bool CalculatePixelEnergy(const cv::Mat& Image, vector< vector<double> >& OutPixelEnergy);
+    bool CalculatePixelEnergyForEveryRow(const cv::Mat& Image, vector< vector<double> >& OutPixelEnergy, bool bDoOddColumns);
 
   protected:
 

@@ -19,6 +19,13 @@ target_sources(PixelEnergy2D
                "PixelEnergy2D.cpp"
                "../../include/SeamCarver/PixelEnergy2D.h")
 
+add_executable(PixelEnergy2DTest
+               PixelEnergy2DTest.cpp)
+target_link_libraries(PixelEnergy2DTest
+                      PixelEnergy2D
+                      ${OpenCV_LIBS}
+                      gtest_main)
+
 add_executable(SeamCarverTest
                SeamCarverTest.cpp)
 target_link_libraries(SeamCarverTest
