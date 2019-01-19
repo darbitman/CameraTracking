@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
   sc1.FindAndRemoveVerticalSeams(50, img, result);
 
   cv::namedWindow("Result");
-  //imshow("Result", result);
+  imshow("Result", result);
   
   while (true) {
     if (cv::waitKey(30) == 27) {

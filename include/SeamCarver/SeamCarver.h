@@ -9,7 +9,7 @@ using std::vector;
 
 namespace ct {
   typedef void(*energyFunc)(const cv::Mat& img, vector<vector<double>>& outPixelEnergy);
-  typedef vector<ConstSizeMinBinaryHeap<int32_t>> vecMinPQ;
+  typedef vector<ConstSizeMinBinaryHeap<int32_t>> VectorOfMinPQ;
 
   class KSeamCarver {
   public:
@@ -25,7 +25,7 @@ namespace ct {
 
     /**
      * @brief find and remove vertical seams
-     * @param numSeams number of vertical seams to remove
+     * @param NumSeams number of vertical seams to remove
      * @param img input image
      * @param outImg output paramter
      * @param computeEnergy pointer to a user-defined energy function. If one is not provided, internal one will be used
@@ -35,22 +35,20 @@ namespace ct {
 
   protected:
     /**
-     * @brief find vertical seam to remove
-     * @param pixelEnergy calculated pixel energy of image
-     * @param marked previously marked pixels for seam removal
-     * @param outSeams output parameter (vector of priority queues)
-     * @return bool indicates success
+     * @brief find vertical seams for later removal
+     * @param PixelEnergy: calculated pixel energy of image
+     * @param OutDiscoveredSeams: output parameter (vector of priority queues)
+     * @return bool: indicates success
      */
-    virtual bool findVerticalSeams(int32_t numSeams, vector< vector<double> >& pixelEnergy, vecMinPQ& outSeams);
+    virtual bool FindVerticalSeams(int32_t NumSeams, vector<vector<double>>& PixelEnergy, VectorOfMinPQ& OutDiscoveredSeams);
 
     /**
-    * @brief calculates the energy required to reach bottom row
-    * @param pixelEnergy calculated pixel energy of image
-    * @param marked pixels marked for seam removal
-    * @param totalEnergyTo output parameter: total energy required to reach pixel at r,c
-    * @param colTo previous row's column to get to current pixel at row,col
+    * @brief calculates the energy required to reach bottom row and saves the column of the pixel in the row above to get to every pixel
+    * @param PixelEnergy: calculated pixel energy of image
+    * @param OutTotalEnergyTo: cumulative energy to reach pixel
+    * @param OutColumnTo: columnn of the pixel in the row above to get to every pixel
     */
-    virtual void calculateVerticalPathEnergy(const vector< vector<double> >& pixelEnergy, vector< vector<double> >& totalEnergyTo, vector< vector<int32_t> >& colTo);
+    virtual void CalculateCumulativeVerticalPathEnergy(const vector<vector<double>>& PixelEnergy, vector<vector<double>>& OutTotalEnergyTo, vector<vector<int32_t>>& OutColumnTo);
 
     /**
      * @brief remove vertical seam from img given by column locations stored in seam
@@ -58,26 +56,26 @@ namespace ct {
      * @param seams vector of priority queues that hold the columns for the pixels to remove
      *              for each row, where the index into the vector is the row number
      */
-    virtual void removeVerticalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams);
+    virtual void RemoveVerticalSeams(vector<cv::Mat>& bgr, VectorOfMinPQ& seams);
     
     /**
      * @brief helper function to mark where the seams are
-     * @param bgr output parameter in which seams will be marked
+     * @param bgr output parameter in which seams will be MarkedPixels
      * @param seams vector of priority queues that hold the columns for the pixels to remove
      *              for each row, where the index into the vector is the row number
      */
-    virtual void markVerticalSeams(vector<cv::Mat>& bgr, vecMinPQ& seams);
+    virtual void markVerticalSeams(vector<cv::Mat>& bgr, VectorOfMinPQ& seams);
 
     /**
-     * @brief helper function to mark where cumulative energy is marked as +INF
-     * @param bgr output parameter in which seams will be marked
-     * @param pixelEnergy calculated pixel energy of image
+     * @brief helper function to mark where cumulative energy is MarkedPixels as +INF
+     * @param bgr output parameter in which seams will be MarkedPixels
+     * @param PixelEnergy calculated pixel energy of image
      */
     virtual void markInfEnergy(vector<cv::Mat>& bgr, vector<vector<double>>& pixelEnergy);
 
-    // vector to store pixels that have been previously marked for removal
-    // will ignore these marked pixels when searching for a new seam
-    vector<vector<bool>> marked;
+    // vector to store pixels that have been previously MarkedPixels for removal
+    // will ignore these MarkedPixels pixels when searching for a new seam
+    vector<vector<bool>> MarkedPixels;
 
     // default energy at the borders of the image
     const double CMarginEnergy;

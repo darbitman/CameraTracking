@@ -17,12 +17,12 @@ bool ct::SeamCarverKeepout::findAndRemoveVerticalSeams(int32_t numSeams, const c
   // default initialization to false
   // then initialize keepout region
   if (this->keepoutRegionExists_) {
-    if (marked.size() != img.size().height ) {
-      marked.resize(img.size().height);
+    if (MarkedPixels.size() != img.size().height ) {
+      MarkedPixels.resize(img.size().height);
       for (int32_t r = 0; r < img.size().height; r++) {
-        marked[r].resize(img.size().width);
+        MarkedPixels[r].resize(img.size().width);
         for (int32_t c = 0; c < img.size().width; c++) {
-          marked[r][c] = false;
+          MarkedPixels[r][c] = false;
         }
       }
     }
@@ -30,7 +30,7 @@ bool ct::SeamCarverKeepout::findAndRemoveVerticalSeams(int32_t numSeams, const c
     // set pixels to avoid by setting them as previously marked
     for (int32_t r = this->keepoutRegion_.row_; r < this->keepoutRegion_.row_ + this->keepoutRegion_.height_; r++) {
       for (int32_t c = this->keepoutRegion_.col_; c < this->keepoutRegion_.col_ + this->keepoutRegion_.width_; c++) {
-        marked[r][c] = true;
+        MarkedPixels[r][c] = true;
       }
     }
   }
@@ -51,12 +51,12 @@ void ct::SeamCarverKeepout::setKeepoutRegion(int32_t row, int32_t col, int32_t h
 void ct::SeamCarverKeepout::deleteKeepoutRegion() {
   // check if marked matrix has been allocated
   // if not, then don't need to unmark pixels in the keepout region
-  if (this->keepoutRegionExists_ && this->marked.size() > 0) {
+  if (this->keepoutRegionExists_ && this->MarkedPixels.size() > 0) {
     // unmark mixels marked by keepout region
-    if (this->keepoutRegion_.row_ + this->keepoutRegion_.height_ >= (int32_t)marked.size()) {
+    if (this->keepoutRegion_.row_ + this->keepoutRegion_.height_ >= (int32_t)MarkedPixels.size()) {
       for (int32_t r = this->keepoutRegion_.row_; r < this->keepoutRegion_.row_ + this->keepoutRegion_.height_; r++) {
         for (int32_t c = this->keepoutRegion_.col_; c < this->keepoutRegion_.col_ + this->keepoutRegion_.width_; c++) {
-          marked[r][c] = false;
+          MarkedPixels[r][c] = false;
         }
       }
     }
