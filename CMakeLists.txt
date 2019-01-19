@@ -53,4 +53,5 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/googletest
 # OpenCV
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
+include_directories("include/DebugDisplay")
 add_subdirectory("src")

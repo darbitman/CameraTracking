@@ -1,6 +1,5 @@
 include_directories("../../include/SeamCarver"
-                    "../../include/ResizablePriorityQueue"
-                    "../../include/DebugDisplay")
+                    "../../include/ResizablePriorityQueue")
                     
 add_library(SeamCarver "")
 target_sources(SeamCarver PRIVATE
