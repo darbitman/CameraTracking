@@ -47,7 +47,7 @@ TEST(PixelEnergy2D, CTORGettersAndSetters)
 
   EXPECT_EQ(PixelEnergyCalculator.CalculatePixelEnergy(img, ComputedPixelEnergy), true);
 
-  DebugDisplay d;
+  KDebugDisplay d;
   d.Display2DVector<double>(ComputedPixelEnergy, PixelEnergyCalculator.GetMarginEnergy());
 }
 

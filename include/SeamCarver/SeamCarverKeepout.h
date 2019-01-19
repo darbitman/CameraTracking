@@ -18,13 +18,13 @@ namespace ct {
     KeepoutRegionStruct() : row_(0), col_(0), height_(0), width_(0) {}
   };
 
-  class SeamCarverKeepout : public SeamCarver {
+  class SeamCarverKeepout : public KSeamCarver {
   public:
     SeamCarverKeepout(int32_t row, int32_t col, int32_t height, int32_t width, double margin_energy = 390150.0) :
-      SeamCarver(margin_energy), keepoutRegionExists_(true), keepoutRegion_(row, col, height, width) {}
+      KSeamCarver(margin_energy), keepoutRegionExists_(true), keepoutRegion_(row, col, height, width) {}
 
     SeamCarverKeepout(double margin_energy = 390150.0) :
-      SeamCarver(margin_energy), keepoutRegionExists_(false) {}
+      KSeamCarver(margin_energy), keepoutRegionExists_(false) {}
 
     /**
      * @brief find and remove vertical seams

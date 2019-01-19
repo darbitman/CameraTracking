@@ -33,4 +33,5 @@ target_link_libraries(SeamCarverTest
                       SeamCarver
                       SeamCarverKeepout
                       ${OpenCV_LIBS}
-                      gtest_main)
+                      gtest_main
+                      PixelEnergy2D)

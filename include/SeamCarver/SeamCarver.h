@@ -5,18 +5,16 @@
 #include "ConstSizeMinBinaryHeap.h"
 
 using std::vector;
-using std::priority_queue;
-
 
 namespace ct {
-  typedef void(*energyFunc)(const cv::Mat& img, vector< vector<double> >& outPixelEnergy);
-  typedef vector< ConstSizeMinBinaryHeap<int32_t> > vecMinPQ;
+  typedef void(*energyFunc)(const cv::Mat& img, vector<vector<double>>& outPixelEnergy);
+  typedef vector<ConstSizeMinBinaryHeap<int32_t>> vecMinPQ;
 
-  class SeamCarver {
+  class KSeamCarver {
   public:
-    SeamCarver(double margin_energy = 390150.0) : MARGIN_ENERGY(margin_energy), numRows(0), numCols(0), bottomRow(0), rightCol(0), posInf(std::numeric_limits<double>::max()) {}
+    KSeamCarver(double margin_energy = 390150.0) : CMarginEnergy(margin_energy), numRows(0), numCols(0), bottomRow(0), rightCol(0), posInf(std::numeric_limits<double>::max()) {}
 
-    virtual ~SeamCarver() {}
+    virtual ~KSeamCarver() {}
 
     /**
      * @brief find and remove vertical seams
@@ -70,34 +68,18 @@ namespace ct {
      */
     virtual void markInfEnergy(vector<cv::Mat>& bgr, vector< vector<double> >& pixelEnergy);
 
-    /**
-     * @brief compute energy for every pixel for every row and choose whether to do odd/even columns
-     * @param bgr image separate into 3 channels (BLUE GREEN RED)
-     * @param outPixelEnergy output parameter that stores the energy for every pixel
-     * @param oddColumns compute energy for odd columns or even columns
-     */
-    virtual void energyForEveryRow(const vector<cv::Mat>& bgr, vector< vector<double> >& outPixelEnergy, bool oddColumns);
-
-    /**
-     * @brief compute energy for every pixel for every column and choose whether to do odd/even rows
-     * @param bgr image separate into 3 channels (BLUE GREEN RED)
-     * @param outPixelEnergy output parameter that stores the energy for every pixel
-     * @param oddRows compute energy for odd rows or even rows
-     */
-    virtual void energyForEveryColumn(const vector<cv::Mat>& bgr, vector< vector<double> >& outPixelEnergy, bool oddRows);
+    // vector to store pixels that have been previously marked for removal
+    // will ignore these marked pixels when searching for a new seam
+    vector< vector<bool> > marked;
 
     // default energy at the borders of the image
-    const double MARGIN_ENERGY;
+    const double CMarginEnergy;
 
     int32_t numRows;
     int32_t numCols;
     int32_t bottomRow;
     int32_t rightCol;
     double posInf;
-
-    // vector to store pixels that have been previously marked for removal
-    // will ignore these marked pixels when searching for a new seam
-    vector< vector<bool> > marked;
   };
  
 }

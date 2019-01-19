@@ -37,22 +37,22 @@ namespace ct
      * @brief
      * @return
      */
-    double GetMarginEnergy() const;
+    virtual double GetMarginEnergy() const;
 
     /**
      *
      */
-    void SetMarginEnergy(double MarginEnergy);
+    virtual void SetMarginEnergy(double MarginEnergy);
 
     /**
      *
      */
-    bool GetDimensions(ImageDimensionStruct& OutImageDimensions) const;
+    virtual bool GetDimensions(ImageDimensionStruct& OutImageDimensions) const;
 
     /**
      *
      */
-    void SetDimensions(int32_t NumColumns, int32_t NumRows, int32_t NumChannels);
+    virtual void SetDimensions(int32_t NumColumns, int32_t NumRows, int32_t NumChannels);
 
     /**
      * @brief
@@ -60,7 +60,7 @@ namespace ct
      * @param OutPixelEnergy: Out parameter, 2D vector of calculated pixel energies
      * @return bool: indicates if the operation was successful
      */
-    bool CalculatePixelEnergy(const cv::Mat& Image, vector< vector<double> >& OutPixelEnergy);
+    virtual bool CalculatePixelEnergy(const cv::Mat& Image, vector< vector<double> >& OutPixelEnergy);
 
   protected:
     /**
@@ -70,7 +70,7 @@ namespace ct
      * @param bDoOddColumns: Indicates whether odd or even columns are done
      * @return bool: indicates if the operation was successful
      */
-    bool CalculatePixelEnergyForEveryRow(const cv::Mat& Image, vector< vector<double> >& OutPixelEnergy, bool bDoOddColumns);
+    virtual bool CalculatePixelEnergyForEveryRow(const cv::Mat& Image, vector< vector<double> >& OutPixelEnergy, bool bDoOddColumns);
 
     /**
      * @brief
@@ -79,7 +79,7 @@ namespace ct
      * @param bDoOddRows: Indicates whether odd or even rows are done
      * @return bool: indicates if the operation was successful
      */
-    bool CalculatePixelEnergyForEveryColumn(const cv::Mat& Image, vector< vector<double> >& OutPixelEnergy, bool bDoOddRows);
+    virtual bool CalculatePixelEnergyForEveryColumn(const cv::Mat& Image, vector< vector<double> >& OutPixelEnergy, bool bDoOddRows);
 
   private:
     // stores number of columns, rows, color channels

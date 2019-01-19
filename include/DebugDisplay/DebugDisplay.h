@@ -4,20 +4,20 @@
 
 using std::vector;
 
-class DebugDisplay
+class KDebugDisplay
 {
 public:
-  DebugDisplay();
+  KDebugDisplay();
 
   template<typename _Tp>
   bool Display2DVector(const vector<vector<double>>& InputVector, _Tp NormalizationFactor);
 };
 
 
-inline DebugDisplay::DebugDisplay() {}
+inline KDebugDisplay::KDebugDisplay() {}
 
 template<typename NormalizationFactorType>
-bool DebugDisplay::Display2DVector(const vector<vector<double>>& InputVector, NormalizationFactorType NormalizationFactor)
+bool KDebugDisplay::Display2DVector(const vector<vector<double>>& InputVector, NormalizationFactorType NormalizationFactor)
 {
   if (!(InputVector.size() > 0 && InputVector[0].size() > 0)) { return false; }
 
