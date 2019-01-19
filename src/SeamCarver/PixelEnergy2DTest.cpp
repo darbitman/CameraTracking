@@ -37,8 +37,7 @@ TEST(PixelEnergy2D, CTORGettersAndSetters)
   EXPECT_EQ(ImageDimensions.NumRows_, NewNumRows);
 
   vector<vector<double>> ComputedPixelEnergy;
-  EXPECT_EQ(PixelEnergyCalculator.CalculatePixelEnergyForEveryRow(img, ComputedPixelEnergy, true), false);
-  EXPECT_EQ(PixelEnergyCalculator.CalculatePixelEnergyForEveryRow(img, ComputedPixelEnergy, false), false);
+  EXPECT_EQ(PixelEnergyCalculator.CalculatePixelEnergy(img, ComputedPixelEnergy), false);
 
   PixelEnergyCalculator.SetDimensions(img.cols, img.rows, img.channels());
   EXPECT_EQ(PixelEnergyCalculator.GetDimensions(ImageDimensions), true);
@@ -46,8 +45,7 @@ TEST(PixelEnergy2D, CTORGettersAndSetters)
   EXPECT_EQ(ImageDimensions.NumColumns_, img.cols);
   EXPECT_EQ(ImageDimensions.NumRows_, img.rows);
 
-  EXPECT_EQ(PixelEnergyCalculator.CalculatePixelEnergyForEveryRow(img, ComputedPixelEnergy, true), true);
-  EXPECT_EQ(PixelEnergyCalculator.CalculatePixelEnergyForEveryRow(img, ComputedPixelEnergy, false), true);
+  EXPECT_EQ(PixelEnergyCalculator.CalculatePixelEnergy(img, ComputedPixelEnergy), true);
 
   DebugDisplay d;
   d.Display2DVector<double>(ComputedPixelEnergy, PixelEnergyCalculator.GetMarginEnergy());

@@ -54,15 +54,37 @@ void ct::KPixelEnergy2D::SetDimensions(int32_t NumColumns, int32_t NumRows, int3
   ImageDimensions.NumColorChannels_ = NumChannels;
 }
 
+bool ct::KPixelEnergy2D::CalculatePixelEnergy(const cv::Mat & Image, vector<vector<double>>& OutPixelEnergy)
+{
+  // TODO add threads
+    // if more columns, split calculation into 2 threads to calculate for every row
+  if (ImageDimensions.NumColumns_ >= ImageDimensions.NumRows_)
+  {
+    return CalculatePixelEnergyForEveryRow(Image, OutPixelEnergy, true) &&
+      CalculatePixelEnergyForEveryRow(Image, OutPixelEnergy, false);
+  }
+  // otherwise, if more rows, split calculation into 2 threads to calculate for every column
+  else
+  {
+    return CalculatePixelEnergyForEveryColumn(Image, OutPixelEnergy, true) &&
+      CalculatePixelEnergyForEveryColumn(Image, OutPixelEnergy, false);
+  }
+
+  return false;
+}
+
 bool ct::KPixelEnergy2D::CalculatePixelEnergyForEveryRow(const cv::Mat& Image, vector<vector<double>>& OutPixelEnergy, bool bDoOddColumns)
 {
-  // ensure OutPixelEnergy is of the right size
-  if (Image.cols != ImageDimensions.NumColumns_ &&
-      Image.rows != ImageDimensions.NumRows_ &&
-      Image.channels() != ImageDimensions.NumColorChannels_)
+  // ensure Image is of the right size
+  if (!(Image.cols == ImageDimensions.NumColumns_ &&
+        Image.rows == ImageDimensions.NumRows_ &&
+        Image.channels() == ImageDimensions.NumColorChannels_))
   {
     return false;
   }
+
+  // ensure Image has non-zero dimensions
+  if (Image.cols == 0 || Image.rows == 0 || Image.channels() == 0) { return false; }
 
   // ensure OutPixelEnergy has the right dimensions
   // if not, then resize locally
@@ -79,16 +101,6 @@ bool ct::KPixelEnergy2D::CalculatePixelEnergyForEveryRow(const cv::Mat& Image, v
   int32_t BottomRow = ImageDimensions.NumRows_ - 1;
   int32_t RightColumn = ImageDimensions.NumColumns_ - 1;
 
-  // Ensure Image has non-zero dimensions
-  if (Image.cols == 0 || Image.rows == 0 || Image.channels() == 0) { return false; }
-
-  // Verify that image dimensions match the local ones
-  if (Image.cols != ImageDimensions.NumColumns_ ||
-      Image.rows != ImageDimensions.NumRows_ ||
-      Image.channels() != ImageDimensions.NumColorChannels_)
-  {
-    return false;
-  }
   vector<cv::Mat> ImageByChannel;
   ImageByChannel.resize(ImageDimensions.NumColorChannels_);
 
@@ -150,7 +162,7 @@ bool ct::KPixelEnergy2D::CalculatePixelEnergyForEveryRow(const cv::Mat& Image, v
         }
         else
         {
-          // Reset gradient from previous calculation
+          // Reset gradients from previous calculation
           DeltaSquareX = 0.0;
           DeltaSquareY = 0.0;
 
@@ -223,6 +235,177 @@ bool ct::KPixelEnergy2D::CalculatePixelEnergyForEveryRow(const cv::Mat& Image, v
               ImageByChannel[Channel].at<uchar>(Row - 1, Column);
 
             DeltaSquareY += DeltaYDirection[Channel] * DeltaYDirection[Channel];
+          }
+          OutPixelEnergy[Row][Column] = DeltaSquareX + DeltaSquareY;
+        }
+      }
+    }
+  }
+  return true;
+}
+
+bool ct::KPixelEnergy2D::CalculatePixelEnergyForEveryColumn(const cv::Mat& Image, vector< vector<double> >& OutPixelEnergy, bool bDoOddRows)
+{
+  // ensure Image is of the right size
+  if (!(Image.cols == ImageDimensions.NumColumns_ &&
+        Image.rows == ImageDimensions.NumRows_ &&
+        Image.channels() == ImageDimensions.NumColorChannels_))
+  {
+    return false;
+  }
+
+  // ensure Image has non-zero dimensions
+  if (Image.cols == 0 || Image.rows == 0 || Image.channels() == 0) { return false; }
+
+  // ensure OutPixelEnergy has the right dimensions
+  // if not, then resize locally
+  if (!(OutPixelEnergy.size() == ImageDimensions.NumRows_) || !(OutPixelEnergy[0].size() == ImageDimensions.NumColumns_))
+  {
+    OutPixelEnergy.resize(ImageDimensions.NumRows_);
+    for (int32_t Row = 0; Row < ImageDimensions.NumRows_; Row++)
+    {
+      OutPixelEnergy[Row].resize(ImageDimensions.NumColumns_);
+    }
+  }
+
+  // TODO can these local variables be moved higher into the private section of the class
+  int32_t BottomRow = ImageDimensions.NumRows_ - 1;
+  int32_t RightColumn = ImageDimensions.NumColumns_ - 1;
+
+  vector<cv::Mat> ImageByChannel;
+  ImageByChannel.resize(ImageDimensions.NumColorChannels_);
+
+  // if color channels use cv::split
+  // otherwise if grayscale use cv::extractChannel
+  // TODO compute depending on the number of channels
+  if (ImageDimensions.NumColorChannels_ == CNumChannelsInColorImage_)
+  {
+    cv::split(Image, ImageByChannel);
+  }
+  else
+  {
+    cv::extractChannel(Image, ImageByChannel[0], 0);
+  }
+
+  // Establish vectors whose size is equal to the number of channels
+  // Two vectors used to compute X gradient
+    // Don't need them for Y since we are only caching the columns
+    // We can just access the pixel values above/below directly to compute the delta
+  // TODO replace vectors with a multidimensional vector
+  vector<double> YDirection2;
+  vector<double> YDirection1;
+
+  YDirection2.resize(ImageDimensions.NumColorChannels_);
+  YDirection1.resize(ImageDimensions.NumColorChannels_);
+
+  vector<double> DeltaXDirection;
+  vector<double> DeltaYDirection;
+
+  DeltaXDirection.resize(ImageDimensions.NumColorChannels_);
+  DeltaYDirection.resize(ImageDimensions.NumColorChannels_);
+
+  double DeltaSquareX = 0.0;
+  double DeltaSquareY = 0.0;
+
+  int32_t Row = 0;
+  // compute energy for every column
+  // do odd rows and even rows separately in order to leverage cached values to prevent multiple memory accesses
+  for (int32_t Column = 0; Column < ImageDimensions.NumColumns_; Column++)
+  {
+    /***** ODD ROWS *****/
+    if (bDoOddRows)
+    {
+      // initialize starting row
+      Row = 1;
+
+      // initialize color values above the current pixel
+      for (int32_t Channel = 0; Channel < ImageDimensions.NumColorChannels_; Channel++)
+      {
+        YDirection1[Channel] = ImageByChannel[Channel].at<uchar>(Row - 1, Column);
+      }
+
+      // Compute energy of odd rows
+      for (/* Row was already initialized */; Row < ImageDimensions.NumRows_; Row += 2)
+      {
+        if (Row == 0 || Column == 0 || Row == BottomRow || Column == RightColumn)
+        {
+          OutPixelEnergy[Row][Column] = MarginEnergy_;
+        }
+        else
+        {
+          // Reset gradients from previous calculation
+          DeltaSquareX = 0.0;
+          DeltaSquareY = 0.0;
+
+          // For all channels:
+            // Compute gradients
+            // Compute overall energy by summing both X and Y gradient
+          for (int32_t Channel = 0; Channel < ImageDimensions.NumColorChannels_; Channel++)
+          {
+            // get new values below the current pixel
+            YDirection2[Channel] = ImageByChannel[Channel].at<uchar>(Row + 1, Column);
+
+            DeltaYDirection[Channel] = YDirection2[Channel] - YDirection1[Channel];
+
+            DeltaSquareY = DeltaYDirection[Channel] * DeltaYDirection[Channel];
+
+            DeltaXDirection[Channel] =
+              ImageByChannel[Channel].at<uchar>(Row, Column + 1) -
+              ImageByChannel[Channel].at<uchar>(Row, Column - 1);
+
+            DeltaSquareX += DeltaXDirection[Channel] * DeltaXDirection[Channel];
+
+            // shift color values up
+            YDirection1[Channel] = YDirection2[Channel];
+          }
+          OutPixelEnergy[Row][Column] = DeltaSquareX + DeltaSquareY;
+        }
+      }
+    }
+    /***** EVEN ROWS *****/
+    else
+    {
+      // initialize starting row
+      Row = 0;
+
+      // initialize color values below the current pixel
+      for (int32_t Channel = 0; Channel < ImageDimensions.NumColorChannels_; Channel++)
+      {
+        YDirection2[Channel] = ImageByChannel[Channel].at<uchar>(Row + 1, Column);
+      }
+
+      // Compute energy of odd rows
+      for (/* Row was already initialized */; Row < ImageDimensions.NumRows_; Row += 2)
+      {
+        if (Row == 0 || Column == 0 || Row == BottomRow || Column == RightColumn)
+        {
+          OutPixelEnergy[Row][Column] = MarginEnergy_;
+        }
+        else
+        {
+          // Reset gradient from previous calculation
+          DeltaSquareX = 0.0;
+          DeltaSquareY = 0.0;
+
+          // For all channels:
+            // Compute gradients
+            // Compute overall energy by summing both X and Y gradient
+          for (int32_t Channel = 0; Channel < ImageDimensions.NumColorChannels_; Channel++)
+          {
+            // shift color values up
+            YDirection1[Channel] = YDirection2[Channel];
+
+            // get new values below the current pixel
+            YDirection2[Channel] = ImageByChannel[Channel].at<uchar>(Row + 1, Column);
+            DeltaYDirection[Channel] = YDirection2[Channel] - YDirection1[Channel];
+
+            DeltaSquareY += DeltaYDirection[Channel] * DeltaYDirection[Channel];
+
+            DeltaXDirection[Channel] =
+              ImageByChannel[Channel].at<uchar>(Row, Column + 1) -
+              ImageByChannel[Channel].at<uchar>(Row, Column - 1);
+
+            DeltaSquareX += DeltaXDirection[Channel] * DeltaXDirection[Channel];
           }
           OutPixelEnergy[Row][Column] = DeltaSquareX + DeltaSquareY;
         }

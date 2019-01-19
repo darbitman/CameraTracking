@@ -58,11 +58,28 @@ namespace ct
      * @brief
      * @param Image: 2D matrix representation of the image
      * @param OutPixelEnergy: Out parameter, 2D vector of calculated pixel energies
+     * @return bool: indicates if the operation was successful
+     */
+    bool CalculatePixelEnergy(const cv::Mat& Image, vector< vector<double> >& OutPixelEnergy);
+
+  protected:
+    /**
+     * @brief
+     * @param Image: 2D matrix representation of the image
+     * @param OutPixelEnergy: Out parameter, 2D vector of calculated pixel energies
      * @param bDoOddColumns: Indicates whether odd or even columns are done
+     * @return bool: indicates if the operation was successful
      */
     bool CalculatePixelEnergyForEveryRow(const cv::Mat& Image, vector< vector<double> >& OutPixelEnergy, bool bDoOddColumns);
 
-  protected:
+    /**
+     * @brief
+     * @param Image: 2D matrix representation of the image
+     * @param OutPixelEnergy: Out parameter, 2D vector of calculated pixel energies
+     * @param bDoOddRows: Indicates whether odd or even rows are done
+     * @return bool: indicates if the operation was successful
+     */
+    bool CalculatePixelEnergyForEveryColumn(const cv::Mat& Image, vector< vector<double> >& OutPixelEnergy, bool bDoOddRows);
 
   private:
     // stores number of columns, rows, color channels
