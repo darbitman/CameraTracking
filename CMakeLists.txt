@@ -29,15 +29,24 @@ if(result)
   message(FATAL_ERROR "Build step for googletest failed: ${result}")
 endif()
 
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
-set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
+set(gtest_force_shared_crt ON CACHE BOOL "")
+set(INSTALL_GTEST OFF CACHE BOOL "")
+set(BUILD_GMOCK OFF CACHE BOOL "")
+set(DEBUGDISPLAY OFF CACHE BOOL "")
+
+if(${DEBUGDISPLAY})
+  add_definitions(-DUSEDEBUGDISPLAY)
+endif()
+#get_directory_property(DirDefs COMPILE_DEFINITIONS)
+#message("COMPILE_DEFINITIONS = ${DirDefs}")
 
 # Add googletest directly to our build. This defines
 # the gtest and gtest_main targets.
 add_subdirectory(${CMAKE_SOURCE_DIR}/googletest
                  ${CMAKE_SOURCE_DIR}/googletest-build
                  )
+                 
+
 
 
 

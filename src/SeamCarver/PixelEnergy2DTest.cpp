@@ -1,6 +1,25 @@
 #include "PixelEnergy2D.h"
 #include "gtest/gtest.h"
 
+#ifdef USEDEBUGDISPLAY
+#include "DebugDisplay.h"
+#endif
+
+bool Convert1DVectorToMat(vector<vector<double>>& VectorOfPixels)
+{
+  cv::Mat output(VectorOfPixels.size(), VectorOfPixels[0].size(), CV_8UC1);
+  for (int Row = 0; Row < VectorOfPixels.size(); Row++)
+  {
+    for (int Column = 0; Column < VectorOfPixels[0].size(); Column++)
+    {
+      output.at<uchar>(Row, Column) = (uchar)(VectorOfPixels[Row][Column] / 390150.0 * 255.0);
+    }
+  }
+
+  return false;
+}
+
+
 TEST(PixelEnergy2D, CTORGettersAndSetters)
 {
   cv::Mat img = cv::imread("../../../images/guitar.png");
@@ -42,11 +61,6 @@ TEST(PixelEnergy2D, CTORGettersAndSetters)
   EXPECT_EQ(ImageDimensions.NumRows_, img.rows);
 
   EXPECT_EQ(PixelEnergyCalculator.CalculatePixelEnergyForEveryRow(img, ComputedPixelEnergy, true), true);
-
-  cv::Mat PixelEnergyResult;
-  // TODO convert vector to cv::Mat
-  cv::namedWindow("ComputedEnergy");
-  cv::imshow("ComputedEnergy", PixelEnergyResult);
 }
 
 int main(int argc, char* argv[])

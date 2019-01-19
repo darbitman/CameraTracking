@@ -1,5 +1,7 @@
 include_directories("../../include/SeamCarver"
-                    "../../include/ResizablePriorityQueue")
+                    "../../include/ResizablePriorityQueue"
+                    "../../include/DebugDisplay")
+                    
 add_library(SeamCarver "")
 target_sources(SeamCarver PRIVATE
                "SeamCarver.cpp"
