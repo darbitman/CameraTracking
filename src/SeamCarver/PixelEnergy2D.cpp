@@ -142,7 +142,7 @@ bool ct::KPixelEnergy2D::CalculatePixelEnergyForEveryRow(const cv::Mat& Image, v
       }
 
       // Compute energy of odd columns
-      for (/* Column was already initialized */; Column < ImageDimensions.NumColumns_; Column++)
+      for (/* Column was already initialized */; Column < ImageDimensions.NumColumns_; Column += 2)
       {
         if (Row == 0 || Column == 0 || Row == BottomRow || Column == RightColumn)
         {
@@ -159,7 +159,9 @@ bool ct::KPixelEnergy2D::CalculatePixelEnergyForEveryRow(const cv::Mat& Image, v
             // Compute overall energy by summing both X and Y gradient
           for (int32_t Channel = 0; Channel < ImageDimensions.NumColorChannels_; Channel++)
           {
+            // get new values to the right
             XDirection2[Channel] = ImageByChannel[Channel].at<uchar>(Row, Column + 1);
+
             DeltaXDirection[Channel] = XDirection2[Channel] - XDirection1[Channel];
 
             DeltaSquareX += DeltaXDirection[Channel] * DeltaXDirection[Channel];
@@ -190,7 +192,7 @@ bool ct::KPixelEnergy2D::CalculatePixelEnergyForEveryRow(const cv::Mat& Image, v
       }
 
       // Compute energy of odd columns
-      for (/* Column was already initialized */; Column < ImageDimensions.NumColumns_; Column++)
+      for (/* Column was already initialized */; Column < ImageDimensions.NumColumns_; Column += 2)
       {
         if (Row == 0 || Column == 0 || Row == BottomRow || Column == RightColumn)
         {
