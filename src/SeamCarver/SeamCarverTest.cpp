@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
 
   ct::KSeamCarver sc1;
   cv::Mat result;
-  sc1.findAndRemoveVerticalSeams(50, img, result);
+  sc1.FindAndRemoveVerticalSeams(50, img, result);
 
   cv::namedWindow("Result");
   //imshow("Result", result);

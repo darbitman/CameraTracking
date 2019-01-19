@@ -35,7 +35,7 @@ bool ct::SeamCarverKeepout::findAndRemoveVerticalSeams(int32_t numSeams, const c
     }
   }
 
-  return KSeamCarver::findAndRemoveVerticalSeams(numSeams, img, outImg, computeEnergyFn);
+  return KSeamCarver::FindAndRemoveVerticalSeams(numSeams, img, outImg, computeEnergyFn);
 }
 
 

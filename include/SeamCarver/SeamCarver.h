@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <queue>
 #include "ConstSizeMinBinaryHeap.h"
+#include "PixelEnergy2D.h"
 
 using std::vector;
 
@@ -12,7 +13,13 @@ namespace ct {
 
   class KSeamCarver {
   public:
-    KSeamCarver(double margin_energy = 390150.0) : CMarginEnergy(margin_energy), numRows(0), numCols(0), bottomRow(0), rightCol(0), posInf(std::numeric_limits<double>::max()) {}
+    KSeamCarver(double MarginEnergy = 390150.0) : CMarginEnergy(MarginEnergy),
+      NumRows_(0),
+      NumColumns_(0),
+      BottomRow_(0),
+      RightColumn_(0),
+      PosInf_(std::numeric_limits<double>::max()),
+      PixelEnergyCalculator_(MarginEnergy) {}
 
     virtual ~KSeamCarver() {}
 
@@ -24,7 +31,7 @@ namespace ct {
      * @param computeEnergy pointer to a user-defined energy function. If one is not provided, internal one will be used
      * @return bool indicates whether seam removal was successful or not
      */
-    virtual bool findAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergyFn = nullptr);
+    virtual bool FindAndRemoveVerticalSeams(int32_t numSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergyFn = nullptr);
 
   protected:
     /**
@@ -66,20 +73,22 @@ namespace ct {
      * @param bgr output parameter in which seams will be marked
      * @param pixelEnergy calculated pixel energy of image
      */
-    virtual void markInfEnergy(vector<cv::Mat>& bgr, vector< vector<double> >& pixelEnergy);
+    virtual void markInfEnergy(vector<cv::Mat>& bgr, vector<vector<double>>& pixelEnergy);
 
     // vector to store pixels that have been previously marked for removal
     // will ignore these marked pixels when searching for a new seam
-    vector< vector<bool> > marked;
+    vector<vector<bool>> marked;
 
     // default energy at the borders of the image
     const double CMarginEnergy;
 
-    int32_t numRows;
-    int32_t numCols;
-    int32_t bottomRow;
-    int32_t rightCol;
-    double posInf;
+    int32_t NumRows_;
+    int32_t NumColumns_;
+    int32_t BottomRow_;
+    int32_t RightColumn_;
+    double PosInf_;
+
+    KPixelEnergy2D PixelEnergyCalculator_;
   };
  
 }
