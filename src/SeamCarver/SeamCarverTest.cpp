@@ -8,7 +8,7 @@ using namespace std;
 int main(int argc, char* argv[]) {
   //testing::InitGoogleTest(&argc, argv);
   //return RUN_ALL_TESTS();
-  cv::Mat img = cv::imread("../../../images/guitar.png");
+  cv::Mat img = cv::imread("../../../images/eagle.jpg");
 
   if (img.empty()) {
     std::cout << "Could not open or find the image" << std::endl;
