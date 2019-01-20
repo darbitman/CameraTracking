@@ -1,17 +1,13 @@
 #include "SeamCarver.h"
-#include "PixelEnergy2D.h"
-#include <limits>
 #include <chrono>
-#include <thread>
 using namespace std::chrono;
-using std::thread;
 #ifdef USEDEBUGDISPLAY
 #include "DebugDisplay.h"
 #endif
 
 bool ct::KSeamCarver::FindAndRemoveVerticalSeams(int32_t NumSeams, const cv::Mat& img, cv::Mat& outImg, ct::energyFunc computeEnergyFn) {
-  this->NumRows_ = img.size().height;
-  this->NumColumns_ = img.size().width;
+  this->NumRows_ = img.rows;
+  this->NumColumns_ = img.cols;
   this->BottomRow_ = NumRows_ - 1;
   this->RightColumn_ = NumColumns_ - 1;
   this->PosInf_ = std::numeric_limits<double>::max();
@@ -79,7 +75,7 @@ bool ct::KSeamCarver::FindAndRemoveVerticalSeams(int32_t NumSeams, const cv::Mat
 
       #ifdef USEDEBUGDISPLAY
       KDebugDisplay d;
-      d.Display2DVector(PixelEnergy, PixelEnergyCalculator_.GetMarginEnergy());
+      d.Display2DVector<double>(PixelEnergy, PixelEnergyCalculator_.GetMarginEnergy());
       #endif
     }
     else {
@@ -362,32 +358,5 @@ void ct::KSeamCarver::RemoveVerticalSeams(vector<cv::Mat>& bgr, VectorOfMinPQ& s
   int32_t NumColorChannels = 3;
   for (int32_t Channel = 0; Channel < NumColorChannels; Channel++) {
     bgr[Channel] = bgr[Channel].colRange(0, bgr[Channel].cols - numSeamsRemoved);
-  }
-}
-
-
-void ct::KSeamCarver::markVerticalSeams(vector<cv::Mat>& bgr, VectorOfMinPQ& seams) {
-  for (int32_t r = 0; r < NumRows_; r++) {
-    int32_t colToRemove = 0;
-    while (seams[r].size()) {
-      colToRemove = seams[r].pop();;
-      //seams[Row].pop();
-      for (int32_t j = 0; j < 3; j++) {
-        bgr[j].at<uchar>(r, colToRemove) = 0;
-      }
-    }
-  }
-}
-
-
-void ct::KSeamCarver::markInfEnergy(vector<cv::Mat>& bgr, vector< vector<double> >& pixelEnergy) {
-  for (int32_t r = 0; r < NumRows_; r++) {
-    for (int32_t c = 0; c < NumColumns_; c++) {
-      if (pixelEnergy[r][c] == PosInf_) {
-        for (int32_t j = 0; j < 3; j++) {
-          bgr[j].at<uchar>(r, c) = 0;
-        }
-      }
-    }
   }
 }

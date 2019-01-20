@@ -1,7 +1,5 @@
 #pragma once
 #include <opencv2/opencv.hpp>
-#include <stdint.h>
-#include <queue>
 #include "ConstSizeMinBinaryHeap.h"
 #include "PixelEnergy2D.h"
 
@@ -58,21 +56,6 @@ namespace ct {
      */
     virtual void RemoveVerticalSeams(vector<cv::Mat>& bgr, VectorOfMinPQ& seams);
     
-    /**
-     * @brief helper function to mark where the seams are
-     * @param bgr output parameter in which seams will be MarkedPixels
-     * @param seams vector of priority queues that hold the columns for the pixels to remove
-     *              for each row, where the index into the vector is the row number
-     */
-    virtual void markVerticalSeams(vector<cv::Mat>& bgr, VectorOfMinPQ& seams);
-
-    /**
-     * @brief helper function to mark where cumulative energy is MarkedPixels as +INF
-     * @param bgr output parameter in which seams will be MarkedPixels
-     * @param PixelEnergy calculated pixel energy of image
-     */
-    virtual void markInfEnergy(vector<cv::Mat>& bgr, vector<vector<double>>& pixelEnergy);
-
     // vector to store pixels that have been previously MarkedPixels for removal
     // will ignore these MarkedPixels pixels when searching for a new seam
     vector<vector<bool>> MarkedPixels;

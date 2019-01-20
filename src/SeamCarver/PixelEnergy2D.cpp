@@ -111,9 +111,13 @@ bool ct::KPixelEnergy2D::CalculatePixelEnergyForEveryRow(const cv::Mat& Image, v
   {
     cv::split(Image, ImageByChannel);
   }
-  else
+  else if (ImageDimensions.NumColorChannels_ == 1)
   {
     cv::extractChannel(Image, ImageByChannel[0], 0);
+  }
+  else
+  {
+    return false;
   }
 
   // Establish vectors whose size is equal to the number of channels

@@ -2,12 +2,8 @@
 #include "SeamCarver.h"
 #include "gtest/gtest.h"
 #include <iostream>
-#ifdef USEDEBUGDISPLAY
-#include "DebugDisplay.h"
-#endif
 
 using namespace std;
-
 
 int main(int argc, char* argv[]) {
   //testing::InitGoogleTest(&argc, argv);

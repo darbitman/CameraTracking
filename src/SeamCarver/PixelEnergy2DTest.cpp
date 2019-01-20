@@ -47,8 +47,22 @@ TEST(PixelEnergy2D, CTORGettersAndSetters)
 
   EXPECT_EQ(PixelEnergyCalculator.CalculatePixelEnergy(img, ComputedPixelEnergy), true);
 
+
+  #ifdef USEDEBUGDISPLAY
   KDebugDisplay d;
   d.Display2DVector<double>(ComputedPixelEnergy, PixelEnergyCalculator.GetMarginEnergy());
+  vector<vector<bool>> Marked;
+  Marked.resize(img.rows);
+  for (int32_t Row = 0; Row < img.rows; Row++)
+  {
+    Marked[Row].resize(img.cols);
+  }
+  for (int32_t Row = 0; Row < img.rows; Row++)
+  {
+    Marked[Row][img.cols / 2] = true;
+  }
+  d.MarkPixelsAndDisplay(Marked, img, 100);
+  #endif
 }
 
 int main(int argc, char* argv[])
