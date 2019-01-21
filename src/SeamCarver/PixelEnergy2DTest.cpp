@@ -12,16 +12,9 @@ TEST(PixelEnergy2D, CTORGettersAndSetters)
     ASSERT_EQ(img.empty(), false);
 
     ct::KPixelEnergy2D PixelEnergyCalculator(img);
-    ImageDimensionStruct ImageDimensions;
+    ImageDimensionStruct  ImageDimensions;
 
-    try
-    {
-        PixelEnergyCalculator.GetDimensions(ImageDimensions);
-    }
-    catch (std::exception& e)
-    {
-        std::cout << e.what() << std::endl;
-    }
+    EXPECT_EQ(PixelEnergyCalculator.GetDimensions(ImageDimensions), true);
     EXPECT_EQ(ImageDimensions.NumColorChannels_, img.channels());
     EXPECT_EQ(ImageDimensions.NumColumns_, img.cols);
     EXPECT_EQ(ImageDimensions.NumRows_, img.rows);
@@ -38,7 +31,7 @@ TEST(PixelEnergy2D, CTORGettersAndSetters)
 
     PixelEnergyCalculator.SetDimensions(NewNumColumns, NewNumRows, NewNumChannels);
 
-    PixelEnergyCalculator.GetDimensions(ImageDimensions);
+    EXPECT_EQ(PixelEnergyCalculator.GetDimensions(ImageDimensions), true);
     EXPECT_EQ(ImageDimensions.NumColorChannels_, NewNumChannels);
     EXPECT_EQ(ImageDimensions.NumColumns_, NewNumColumns);
     EXPECT_EQ(ImageDimensions.NumRows_, NewNumRows);
@@ -47,7 +40,7 @@ TEST(PixelEnergy2D, CTORGettersAndSetters)
     EXPECT_EQ(PixelEnergyCalculator.CalculatePixelEnergy(img, ComputedPixelEnergy), false);
 
     PixelEnergyCalculator.SetDimensions(img.cols, img.rows, img.channels());
-    PixelEnergyCalculator.GetDimensions(ImageDimensions);
+    EXPECT_EQ(PixelEnergyCalculator.GetDimensions(ImageDimensions), true);
     EXPECT_EQ(ImageDimensions.NumColorChannels_, img.channels());
     EXPECT_EQ(ImageDimensions.NumColumns_, img.cols);
     EXPECT_EQ(ImageDimensions.NumRows_, img.rows);

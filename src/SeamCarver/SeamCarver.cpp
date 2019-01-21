@@ -17,7 +17,7 @@ bool ct::KSeamCarver::FindAndRemoveVerticalSeams(int32_t NumSeams, const cv::Mat
     // check if removing more seams than columns available
     if (NumSeams > NumColumns_)
     {
-        throw std::domain_error("Can't remove more vertical seams than available\n");
+        return false;
     }
 
     /*** DECLARE VECTORS THAT WILL BE USED THROUGHOUT THE SEAM REMOVAL PROCESS ***/
@@ -85,10 +85,10 @@ bool ct::KSeamCarver::FindAndRemoveVerticalSeams(int32_t NumSeams, const cv::Mat
             stop = high_resolution_clock::now();
             duration = duration_cast<microseconds>(stop - start);
 
-            #ifdef USEDEBUGDISPLAY
+#ifdef USEDEBUGDISPLAY
             KDebugDisplay d;
             d.Display2DVector<double>(PixelEnergy, PixelEnergyCalculator_.GetMarginEnergy());
-            #endif
+#endif
         }
         else
         {
@@ -116,9 +116,12 @@ bool ct::KSeamCarver::FindAndRemoveVerticalSeams(int32_t NumSeams, const cv::Mat
         stop = high_resolution_clock::now();
         duration = duration_cast<microseconds>(stop - start);
     }
-    catch (std::exception& e)
+    catch (std::exception e)
     {
         std::cout << e.what() << std::endl;
+        //this->markVerticalSeams(bgr, seams);
+        //this->markInfEnergy(bgr, PixelEnergy);
+        //cv::merge(bgr, outImg);
         return false;
     }
 
