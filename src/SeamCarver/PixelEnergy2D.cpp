@@ -33,18 +33,17 @@ void ct::KPixelEnergy2D::SetMarginEnergy(double MarginEnergy)
     MarginEnergy_ = MarginEnergy;
 }
 
-bool ct::KPixelEnergy2D::GetDimensions(ImageDimensionStruct& OutImageDimensions) const
+void ct::KPixelEnergy2D::GetDimensions(ImageDimensionStruct& OutImageDimensions) const
 {
     if (!bDimensionsInitialized)
     {
-        return false;
+        throw std::logic_error("Attempting to access uninitialized dimensions\n");
     }
     else
     {
         OutImageDimensions.NumColumns_ = ImageDimensions.NumColumns_;
         OutImageDimensions.NumRows_ = ImageDimensions.NumRows_;
         OutImageDimensions.NumColorChannels_ = ImageDimensions.NumColorChannels_;
-        return true;
     }
 }
 
@@ -107,7 +106,6 @@ bool ct::KPixelEnergy2D::CalculatePixelEnergyForEveryRow(const cv::Mat& Image, v
 
     // if color channels use cv::split
     // otherwise if grayscale use cv::extractChannel
-    // TODO compute depending on the number of channels
     if (ImageDimensions.NumColorChannels_ == CNumChannelsInColorImage_)
     {
         cv::split(Image, ImageByChannel);
@@ -118,7 +116,7 @@ bool ct::KPixelEnergy2D::CalculatePixelEnergyForEveryRow(const cv::Mat& Image, v
     }
     else
     {
-        return false;
+        throw std::domain_error("Number of channels is not 3 (color) nor 1 (grayscale)");
     }
 
     // Establish vectors whose size is equal to the number of channels

@@ -48,7 +48,7 @@ namespace ct
         /**
          *
          */
-        virtual bool GetDimensions(ImageDimensionStruct& OutImageDimensions) const;
+        virtual void GetDimensions(ImageDimensionStruct& OutImageDimensions) const;
 
         /**
          *
